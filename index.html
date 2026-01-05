@@ -12,7 +12,6 @@
         .marker-lg { width: 28px; height: 28px; }
         .marker-ground { background: #22c55e; } 
         .marker-second { background: #3b82f6; } 
-        .marker-third { background: #ef4444; }  
         .btn-active { border-color: #2563eb !important; background-color: #eff6ff !important; color: #1e40af !important; }
         input[type="number"] { -moz-appearance: textfield; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -29,12 +28,12 @@
         <section class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
             <div id="canvasContainer" class="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden mb-4 border-2 border-slate-300 flex items-center justify-center">
                 <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                <p id="placeholderText" class="text-slate-400 text-xs text-center px-6">Upload a photo to tap & count</p>
+                <p id="placeholderText" class="text-slate-400 text-xs text-center px-6">Upload photo to start counting</p>
             </div>
 
             <div class="space-y-4 mb-2">
                 <div>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Item Type</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Window / Door Type</p>
                     <div class="grid grid-cols-5 gap-1">
                         <button onclick="setMode('size', 'small')" id="sz-small" class="size-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Small</button>
                         <button onclick="setMode('size', 'medium')" id="sz-medium" class="size-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Med</button>
@@ -46,63 +45,53 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Specialty Size</p>
+                        <div class="flex gap-1">
+                            <button onclick="setSpecialty('std')" id="spec-std" class="spec-btn flex-1 py-2 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Standard</button>
+                            <button onclick="setSpecialty('xl')" id="spec-xl" class="spec-btn flex-1 py-2 rounded bg-amber-100 text-amber-800 text-[10px] font-bold border-2 border-transparent">XL / Oversize</button>
+                        </div>
+                    </div>
+                    <div>
                         <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Floor</p>
                         <div class="flex gap-1">
                             <button onclick="setMode('height', 'ground')" id="ht-ground" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Gnd</button>
                             <button onclick="setMode('height', 'second')" id="ht-second" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">2nd</button>
                         </div>
                     </div>
-                    <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Dot</p>
-                        <div class="flex gap-1">
-                            <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Small</button>
-                            <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Large</button>
-                        </div>
-                    </div>
                 </div>
             </div>
 
             <input type="file" accept="image/*" id="uploadInput" class="hidden" onchange="handleFile(this)">
-            <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-sm mt-2">📁 Upload House Photo</button>
+            <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-sm mt-2">📁 Upload Photo</button>
         </section>
 
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="font-bold text-slate-800 text-sm">Review List</h2>
-                <label class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
-                    <input type="checkbox" id="taxToggle" onchange="calculate()"> +8.25% Tax
-                </label>
-            </div>
+            <h2 class="font-bold text-slate-800 text-sm mb-3">Line Items</h2>
             <div id="countGrid" class="space-y-2 text-xs"></div>
         </section>
     </main>
 
     <footer class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-5 rounded-3xl shadow-2xl z-50 border border-slate-800">
-        <div class="flex justify-between items-center mb-4 px-1">
-            <div>
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Total Quote</p>
-                <p class="text-3xl font-black text-blue-400" id="totalPrice">$0.00</p>
-            </div>
-            <div class="text-right">
-                <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Items</p>
-                <p class="text-xl font-bold" id="totalCount">0</p>
-            </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-            <button onclick="shareQuote()" class="bg-slate-800 text-white py-4 rounded-2xl font-bold text-sm border border-slate-700">💬 Share SMS</button>
-            <button onclick="downloadSummary()" class="bg-blue-600 text-white py-4 rounded-2xl font-bold text-sm shadow-lg shadow-blue-500/20">💾 Download</button>
+        <div class="flex justify-between items-center mb-4">
+            <div><p class="text-3xl font-black text-blue-400" id="totalPrice">$0.00</p></div>
+            <button onclick="shareQuote()" class="bg-blue-600 px-6 py-3 rounded-2xl font-bold text-sm">💬 Share Quote</button>
         </div>
     </footer>
 
     <script>
-        // EDIT PRICES HERE
-        const BASE_RATES = { small: 5, medium: 10, large: 15, picture: 25, door: 35 };
+        // XL PRICING: Picture XL ($45), Door XL ($60)
+        const BASE_RATES = { 
+            small: 5, medium: 10, large: 15, 
+            picture: 25, picture_xl: 45, 
+            door: 35, door_xl: 60 
+        };
         const MULTIPLIERS = { ground: 1.0, second: 1.3 };
         
-        let selSize = 'small', selHeight = 'ground', selDotSize = 'lg';
-        let counts = JSON.parse(localStorage.getItem('winStore')) || {
-            small: {ground:0, second:0}, medium: {ground:0, second:0}, 
-            large: {ground:0, second:0}, picture: {ground:0, second:0}, door: {ground:0, second:0}
+        let selSize = 'small', selHeight = 'ground', selSpec = 'std';
+        let counts = JSON.parse(localStorage.getItem('winStoreV3')) || {
+            small: {ground:0, second:0}, medium: {ground:0, second:0}, large: {ground:0, second:0},
+            picture: {ground:0, second:0}, picture_xl: {ground:0, second:0},
+            door: {ground:0, second:0}, door_xl: {ground:0, second:0}
         };
 
         function setMode(type, val) {
@@ -117,43 +106,37 @@
             }
         }
 
-        function setDotSize(v) {
-            selDotSize = v;
-            document.querySelectorAll('.dot-btn').forEach(b => b.classList.remove('btn-active'));
-            document.getElementById(`dot-${v}`).classList.add('btn-active');
+        function setSpecialty(v) {
+            selSpec = v;
+            document.querySelectorAll('.spec-btn').forEach(b => b.classList.remove('btn-active'));
+            document.getElementById(`spec-${v}`).classList.add('btn-active');
         }
 
         function initGrid() {
             const grid = document.getElementById('countGrid');
-            grid.innerHTML = '<div class="flex justify-between text-[9px] font-bold text-slate-400 px-1 mb-1"><span>ITEM TYPE</span><span>GND | 2ND</span></div>';
+            grid.innerHTML = '';
             for(let s in counts) {
-                const row = document.createElement('div');
-                row.className = "flex justify-between items-center bg-slate-50 p-2 rounded-lg";
-                row.innerHTML = `<span class="capitalize font-bold text-slate-700">${s}</span>
-                    <div class="flex gap-2">
-                        <input type="number" value="${counts[s].ground}" oninput="updateCount('${s}','ground',this.value)" class="w-12 py-1 bg-white text-center rounded border font-bold">
-                        <input type="number" value="${counts[s].second}" oninput="updateCount('${s}','second',this.value)" class="w-12 py-1 bg-white text-center rounded border font-bold">
-                    </div>`;
-                grid.appendChild(row);
+                if(counts[s].ground > 0 || counts[s].second > 0) {
+                    const row = document.createElement('div');
+                    row.className = "flex justify-between items-center bg-slate-50 p-2 rounded-lg border-l-4 " + (s.includes('xl') ? 'border-amber-400' : 'border-slate-300');
+                    row.innerHTML = `<span class="capitalize font-bold text-slate-700">${s.replace('_', ' ')}</span>
+                        <div class="flex gap-2">
+                            <span class="bg-white px-2 py-1 rounded border">G: ${counts[s].ground}</span>
+                            <span class="bg-white px-2 py-1 rounded border">2: ${counts[s].second}</span>
+                        </div>`;
+                    grid.appendChild(row);
+                }
             }
             calculate();
         }
 
-        function updateCount(s, h, v) { 
-            counts[s][h] = parseInt(v) || 0; 
-            localStorage.setItem('winStore', JSON.stringify(counts));
-            calculate(); 
-        }
-
         function calculate() {
-            let total = 0, qty = 0;
+            let total = 0;
             for(let s in counts) for(let h in counts[s]) {
                 total += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
-                qty += counts[s][h];
             }
-            if(document.getElementById('taxToggle').checked) total *= 1.0825;
             document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('totalCount').innerText = qty;
+            localStorage.setItem('winStoreV3', JSON.stringify(counts));
         }
 
         function placeMarker(e) {
@@ -161,43 +144,34 @@
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
             const marker = document.createElement('div');
-            marker.className = `marker marker-${selHeight} marker-${selDotSize}`;
+            marker.className = `marker marker-${selHeight} marker-lg`;
             marker.style.left = `${x}%`; marker.style.top = `${y}%`;
             document.getElementById('canvasContainer').appendChild(marker);
-            counts[selSize][selHeight]++;
+            
+            let finalKey = (selSize === 'picture' || selSize === 'door') && selSpec === 'xl' ? `${selSize}_xl` : selSize;
+            counts[finalKey][selHeight]++;
             initGrid();
         }
 
         function handleFile(input) {
-            if(!input.files[0]) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = document.getElementById('mainPhoto');
                 img.src = e.target.result;
                 img.classList.remove('hidden');
                 document.getElementById('placeholderText').classList.add('hidden');
-                document.querySelectorAll('.marker').forEach(m => m.remove());
             };
             reader.readAsDataURL(input.files[0]);
         }
 
         function shareQuote() {
             const total = document.getElementById('totalPrice').innerText;
-            const text = `Window Cleaning Estimate\nItems: ${document.getElementById('totalCount').innerText}\nTotal: ${total}`;
+            const text = `Window Estimate: ${total}`;
             if (navigator.share) navigator.share({ text: text });
             else alert(text);
         }
 
-        function downloadSummary() {
-            const total = document.getElementById('totalPrice').innerText;
-            const blob = new Blob([`Estimate: ${total}`], {type: 'text/plain'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'Quote.txt';
-            a.click();
-        }
-
-        function resetData() { if(confirm("Clear All?")) { localStorage.clear(); location.reload(); } }
+        function resetData() { if(confirm("Reset?")) { localStorage.clear(); location.reload(); } }
         initGrid();
     </script>
 </body>
