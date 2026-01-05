@@ -1,0 +1,16 @@
+{
+  "name": "Window Estimator AI",
+  "short_name": "WindowAI",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "window-estimator-ai-logo_2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
