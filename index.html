@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Window Estimator AI</title>
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; }
@@ -11,7 +12,7 @@
         .input-number::-webkit-outer-spin-button, .input-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-32">
+<body class="bg-slate-50 min-h-screen pb-40">
 
     <header class="bg-slate-900 text-white p-5 shadow-md sticky top-0 z-50 flex justify-between items-center">
         <h1 class="text-xl font-bold tracking-tight">Window Estimator <span class="text-blue-400">AI</span></h1>
@@ -69,6 +70,103 @@
             medium: { ground: 0, second: 0, third: 0 },
             large: { ground: 0, second: 0, third: 0 }
         };
+
+        function initGrid() {
+            const grid = document.getElementById('countGrid');
+            grid.innerHTML = '';
+            sizes.forEach(size => {
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-4 gap-2 items-center";
+                row.innerHTML = `
+                    <div class="capitalize font-bold text-slate-700 text-sm">${size}</div>
+                    ${heights.map(h => `
+                        <input type="number" value="${counts[size][h]}" 
+                            oninput="updateCount('${size}', '${h}', this.value)"
+                            class="input-number w-full p-3 bg-slate-100 border-none rounded-lg text-center font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 text-lg">
+                    `).join('')}
+                `;
+                grid.appendChild(row);
+            });
+            calculate();
+        }
+
+        function updateCount(size, height, val) {
+            counts[size][height] = parseInt(val) || 0;
+            localStorage.setItem('windowCounts', JSON.stringify(counts));
+            calculate();
+        }
+
+        function calculate() {
+            let total = 0;
+            let qty = 0;
+            sizes.forEach(s => {
+                heights.forEach(h => {
+                    total += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
+                    qty += counts[s][h];
+                });
+            });
+            document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
+            document.getElementById('totalCount').innerText = qty;
+        }
+
+        function downloadSummary() {
+            const total = document.getElementById('totalPrice').innerText;
+            const qty = document.getElementById('totalCount').innerText;
+            const date = new Date().toLocaleString();
+            let content = `WINDOW CLEANING ESTIMATE\nDate: ${date}\n--------------------------\n`;
+            
+            sizes.forEach(s => {
+                heights.forEach(h => {
+                    if(counts[s][h] > 0) content += `${s.toUpperCase()} (${h}): ${counts[s][h]} windows\n`;
+                });
+            });
+            
+            content += `--------------------------\nTOTAL WINDOWS: ${qty}\nGRAND TOTAL: ${total}\n\nThank you for your business!`;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const anchor = document.createElement('a');
+            anchor.download = `Estimate_${Date.now()}.txt`;
+            anchor.href = window.URL.createObjectURL(blob);
+            anchor.click();
+        }
+
+        function shareEstimate() {
+            const total = document.getElementById('totalPrice').innerText;
+            const qty = document.getElementById('totalCount').innerText;
+            const text = `Window Cleaning Quote: ${total} for ${qty} windows. Generated via Window Estimator AI.`;
+            if (navigator.share) {
+                navigator.share({ title: 'Window Estimate', text: text });
+            } else {
+                alert(text);
+            }
+        }
+
+        function resetData() {
+            if(confirm("Clear all counts and photos?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // Camera Fix for Android Preview
+        document.getElementById('cameraInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.className = "h-20 w-20 object-cover rounded-xl border-2 border-blue-500 flex-shrink-0 shadow-sm";
+                    document.getElementById('photoPreview').appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        initGrid();
+    </script>
+</body>
+</html>        };
 
         function initGrid() {
             const grid = document.getElementById('countGrid');
