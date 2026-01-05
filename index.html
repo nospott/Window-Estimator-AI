@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Window Estimator AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; touch-action: manipulation; }
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; }
@@ -23,17 +22,17 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-900">
 
-    <div id="page1" class="page page-active pb-64">
+    <div id="page1" class="page page-active">
         <header class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-50">
-            <h1 class="text-xl font-bold italic tracking-tighter text-blue-400 uppercase">Step 1: Estimate</h1>
-            <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded font-bold">RESET</button>
+            <h1 class="text-xl font-bold italic text-blue-400 uppercase">1. Estimate</h1>
+            <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded">Reset</button>
         </header>
 
         <main class="p-4 max-w-md mx-auto space-y-4">
             <section class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
                 <div id="canvasContainer" class="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden mb-4 border-2 border-slate-300 flex items-center justify-center">
                     <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                    <p id="placeholderText" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest text-center">Tap "Upload" to begin marking windows</p>
+                    <p id="placeholderText" class="text-slate-400 text-[10px] font-bold uppercase text-center">Upload Photo To Begin</p>
                 </div>
 
                 <div class="space-y-4">
@@ -52,59 +51,74 @@
                             <button onclick="setHeight('third')" id="ht-third" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">3rd</button>
                         </div>
                         <div class="flex gap-1">
-                            <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">Sm Dot</button>
-                            <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Lg Dot</button>
+                            <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">Small</button>
+                            <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Large</button>
                         </div>
                     </div>
                 </div>
                 <input type="file" accept="image/*" id="uploadInput" class="hidden" onchange="handleFile(this)">
                 <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-xs mt-4 uppercase tracking-widest">📁 Upload Photo</button>
             </section>
-        </main>
 
-        <footer class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-6 rounded-3xl shadow-2xl z-50">
-            <div class="flex justify-between items-center mb-4">
-                <div><p class="text-4xl font-black text-blue-400" id="p1Price">$0.00</p></div>
-                <button onclick="goToPage(2)" class="bg-blue-600 px-10 py-4 rounded-2xl font-bold text-sm shadow-lg uppercase tracking-tighter">Next: Client Info ➜</button>
-            </div>
-        </footer>
+            <section class="bg-blue-600 text-white p-5 rounded-2xl shadow-lg flex justify-between items-center">
+                <div>
+                    <p class="text-[10px] font-bold opacity-80 uppercase">Sub-Total</p>
+                    <p class="text-3xl font-black" id="p1Price">$0.00</p>
+                </div>
+                <button onclick="goToPage(2)" class="bg-white text-blue-600 px-6 py-3 rounded-xl font-black text-sm uppercase">Next ➜</button>
+            </section>
+        </main>
     </div>
 
-    <div id="page2" class="page pb-20">
+    <div id="page2" class="page pb-10">
         <header class="bg-slate-900 text-white p-5 flex items-center sticky top-0 z-50">
-            <button onclick="goToPage(1)" class="mr-4 text-blue-400 font-bold">⇠ Back</button>
-            <h1 class="text-xl font-bold uppercase italic tracking-tighter">Step 2: Details</h1>
+            <button onclick="goToPage(1)" class="mr-4 text-blue-400 font-bold uppercase text-xs">⇠ Back</button>
+            <h1 class="text-xl font-bold uppercase italic text-blue-400">2. Finalize</h1>
         </header>
 
-        <main class="p-4 max-w-md mx-auto space-y-6">
+        <main class="p-4 max-w-md mx-auto space-y-4">
             <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-                <h2 class="font-black text-xs uppercase text-slate-400 tracking-widest">Customer Information</h2>
-                <input type="text" id="custName" placeholder="Client Name" class="w-full p-3 bg-slate-50 rounded-xl border-none text-sm font-bold">
-                <input type="text" id="custAddr" placeholder="Property Address" class="w-full p-3 bg-slate-50 rounded-xl border-none text-sm font-bold">
+                <h2 class="font-black text-[10px] uppercase text-slate-400 tracking-widest">Business & Client</h2>
+                <input type="text" id="bizName" placeholder="Your Business Name" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
+                <input type="text" id="custName" placeholder="Client Name" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
+                <input type="text" id="custAddr" placeholder="Job Address" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
             </section>
 
             <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h2 class="font-black text-xs uppercase text-slate-400 tracking-widest">Service Add-Ons</h2>
-                <label class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                    <span class="text-sm font-bold text-slate-700">Screen Cleaning ($2/ea)</span>
-                    <input type="checkbox" id="addScreens" onchange="calculate()" class="w-5 h-5 rounded text-blue-600">
-                </label>
-                <label class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                    <span class="text-sm font-bold text-slate-700">Track Detailing ($3/ea)</span>
-                    <input type="checkbox" id="addTracks" onchange="calculate()" class="w-5 h-5 rounded text-blue-600">
-                </label>
-                <label class="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
-                    <span class="text-sm font-bold text-blue-700 underline italic">Add 8.25% Sales Tax</span>
-                    <input type="checkbox" id="taxToggle" onchange="calculate()" class="w-5 h-5 rounded text-blue-600">
+                <h2 class="font-black text-[10px] uppercase text-slate-400 tracking-widest">Service Add-Ons</h2>
+                
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
+                    <span class="text-sm font-bold">Screens ($2/ea)</span>
+                    <div class="flex items-center gap-4">
+                        <button onclick="changeAddon('screen', -1)" class="w-8 h-8 bg-slate-200 rounded-full font-bold">-</button>
+                        <span id="screenCount" class="font-black">0</span>
+                        <button onclick="changeAddon('screen', 1)" class="w-8 h-8 bg-slate-200 rounded-full font-bold">+</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
+                    <span class="text-sm font-bold">Tracks ($3/ea)</span>
+                    <div class="flex items-center gap-4">
+                        <button onclick="changeAddon('track', -1)" class="w-8 h-8 bg-slate-200 rounded-full font-bold">-</button>
+                        <span id="trackCount" class="font-black">0</span>
+                        <button onclick="changeAddon('track', 1)" class="w-8 h-8 bg-slate-200 rounded-full font-bold">+</button>
+                    </div>
+                </div>
+
+                <label class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <span class="text-xs font-bold text-blue-700 uppercase">Apply 8.25% Tax</span>
+                    <input type="checkbox" id="taxToggle" onchange="calculate()" class="w-5 h-5 rounded border-blue-300">
                 </label>
             </section>
 
             <section class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl space-y-4">
-                <h2 class="font-black text-[10px] uppercase text-slate-500 tracking-[0.2em] text-center">Final Quote Summary</h2>
-                <div id="finalList" class="space-y-2 text-[11px] font-mono border-b border-slate-800 pb-4"></div>
-                <div class="flex justify-between items-center px-2">
-                    <p class="text-4xl font-black text-blue-400" id="p2Price">$0.00</p>
-                    <button onclick="shareQuote()" class="bg-blue-600 px-8 py-4 rounded-2xl font-bold text-sm uppercase">Share PDF</button>
+                <div id="finalList" class="space-y-1 text-[10px] font-mono border-b border-slate-800 pb-4"></div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase">Grand Total</p>
+                        <p class="text-4xl font-black text-blue-400" id="p2Price">$0.00</p>
+                    </div>
+                    <button onclick="shareQuote()" class="bg-blue-600 px-8 py-4 rounded-2xl font-black text-sm uppercase shadow-lg shadow-blue-500/20">Share SMS</button>
                 </div>
             </section>
         </main>
@@ -117,12 +131,13 @@
 
         let selSize = 'small', selHeight = 'ground', selDotSize = 'lg', isPic = false;
         let counts = {};
+        let addons = { screen: 0, track: 0 };
 
         function goToPage(num) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
             document.getElementById(`page${num}`).classList.add('page-active');
             window.scrollTo(0,0);
-            initFinalList();
+            if(num === 2) initFinalList();
         }
 
         function setSize(s) {
@@ -150,18 +165,23 @@
             btn.innerText = isPic ? '🖼️ PIC ON' : '🖼️ PIC';
         }
 
+        function changeAddon(type, amt) {
+            addons[type] = Math.max(0, addons[type] + amt);
+            document.getElementById(`${type}Count`).innerText = addons[type];
+            calculate();
+            initFinalList();
+        }
+
         function calculate() {
-            let subtotal = 0, totalQty = 0;
+            let subtotal = 0;
             for(let key in counts) {
                 const parts = key.split('_');
                 const rate = parts[1] === 'pic' ? PIC_RATES[parts[0]] : STD_RATES[parts[0]];
                 subtotal += counts[key] * (rate * MULTI[parts[2]]);
-                totalQty += counts[key];
             }
             
-            // Upsells
-            if(document.getElementById('addScreens').checked) subtotal += (totalQty * 2);
-            if(document.getElementById('addTracks').checked) subtotal += (totalQty * 3);
+            subtotal += (addons.screen * 2);
+            subtotal += (addons.track * 3);
             
             let final = subtotal;
             if(document.getElementById('taxToggle').checked) final *= 1.0825;
@@ -189,11 +209,23 @@
             list.innerHTML = '';
             for(let key in counts) {
                 if(counts[key] > 0) {
-                    const row = document.createElement('div');
-                    row.className = "flex justify-between";
-                    row.innerText = `${key.replace(/_/g,' ').toUpperCase()}: x${counts[key]}`;
-                    list.appendChild(row);
+                    const d = document.createElement('div');
+                    d.className = "flex justify-between opacity-70";
+                    d.innerText = `${key.replace(/_/g,' ').toUpperCase()}: x${counts[key]}`;
+                    list.appendChild(d);
                 }
+            }
+            if(addons.screen > 0) {
+                const d = document.createElement('div');
+                d.className = "flex justify-between text-blue-400";
+                d.innerText = `SCREENS CLEANED: x${addons.screen}`;
+                list.appendChild(d);
+            }
+            if(addons.track > 0) {
+                const d = document.createElement('div');
+                d.className = "flex justify-between text-blue-400";
+                d.innerText = `TRACKS DETAILED: x${addons.track}`;
+                list.appendChild(d);
             }
         }
 
@@ -205,19 +237,19 @@
                 img.classList.remove('hidden');
                 document.getElementById('placeholderText').classList.add('hidden');
                 document.querySelectorAll('.marker').forEach(m => m.remove());
-                counts = {};
-                calculate();
+                counts = {}; calculate();
             };
             reader.readAsDataURL(input.files[0]);
         }
 
         function shareQuote() {
+            const biz = document.getElementById('bizName').value || "Company";
             const name = document.getElementById('custName').value || "Client";
             const addr = document.getElementById('custAddr').value || "Address";
             const total = document.getElementById('p2Price').innerText;
-            const text = `ESTIMATE FOR: ${name}\nLOC: ${addr}\nTOTAL: ${total}\n\nGenerated by Window Estimator AI`;
-            if (navigator.share) navigator.share({ title: 'Window Quote', text: text });
-            else alert(text);
+            const msg = `ESTIMATE FROM: ${biz}\nFOR: ${name}\nLOC: ${addr}\nTOTAL: ${total}\n\nThank you!`;
+            if (navigator.share) navigator.share({ title: 'Window Quote', text: msg });
+            else alert(msg);
         }
 
         function resetData() { if(confirm("Clear current estimate?")) location.reload(); }
