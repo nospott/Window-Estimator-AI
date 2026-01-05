@@ -25,13 +25,16 @@
 
     <div id="page0" class="page page-active">
         <div class="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-900 text-white">
-            <h1 class="text-3xl font-black text-blue-400 mb-2 italic">WINDOW AI</h1>
-            <p class="text-slate-400 text-center mb-8 text-sm">Subscription Required to Access Estimator</p>
+            <h1 class="text-3xl font-black text-blue-400 mb-2 italic text-center uppercase tracking-tighter">Window Estimator AI</h1>
+            <p class="text-slate-400 text-center mb-8 text-xs font-bold uppercase tracking-widest">Subscription Required</p>
             
-            <div class="w-full max-w-xs space-y-4">
-                <input type="text" id="licenseKey" placeholder="Enter License Key" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 text-center font-bold tracking-widest uppercase">
-                <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg">Activate App</button>
-                <a href="https://your-payment-link.com" class="block text-center text-xs text-blue-400 underline mt-4">Don't have a key? Subscribe here</a>
+            <div class="w-full max-w-xs space-y-4 text-center">
+                <input type="text" id="licenseKey" placeholder="ENTER UNIQUE KEY" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 text-center font-bold tracking-widest uppercase text-blue-400">
+                <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Activate App</button>
+                <div class="pt-4 border-t border-slate-800">
+                    <p class="text-[10px] text-slate-500 mb-2 italic">Need a license key? Contact support below.</p>
+                    <a href="https://your-payment-link.com" class="text-blue-400 font-bold text-sm underline uppercase tracking-tighter">Get Individual Key</a>
+                </div>
             </div>
         </div>
     </div>
@@ -41,35 +44,48 @@
             <h1 class="text-xl font-bold italic text-blue-400 uppercase tracking-tighter">1. Visual Estimate</h1>
             <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded">Reset</button>
         </header>
+
         <main class="p-4 max-w-md mx-auto space-y-4">
             <section class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
                 <div id="canvasContainer" class="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden mb-4 border-2 border-slate-300 flex items-center justify-center">
                     <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
                     <p id="placeholderText" class="text-slate-400 text-[10px] font-bold uppercase text-center">Upload Photo To Begin</p>
                 </div>
+
                 <div class="space-y-4">
-                    <div class="grid grid-cols-5 gap-1">
-                        <button onclick="setSize('small')" id="sz-small" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Small</button>
-                        <button onclick="setSize('medium')" id="sz-medium" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Med</button>
-                        <button onclick="setSize('large')" id="sz-large" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Lrg</button>
-                        <button onclick="setSize('door')" id="sz-door" class="sz-btn py-3 rounded bg-blue-100 text-blue-700 text-[10px] font-bold border-2 border-transparent">Door</button>
-                        <button onclick="togglePic()" id="pic-toggle" class="py-3 rounded border-2 border-dashed border-slate-300 text-[10px] font-bold text-slate-500">🖼️ PIC</button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="flex gap-1">
-                            <button onclick="setHeight('ground')" id="ht-ground" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Gnd</button>
-                            <button onclick="setHeight('second')" id="ht-second" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">2nd</button>
-                            <button onclick="setHeight('third')" id="ht-third" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">3rd</button>
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Type</p>
+                        <div class="grid grid-cols-5 gap-1">
+                            <button onclick="setSize('small')" id="sz-small" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Small</button>
+                            <button onclick="setSize('medium')" id="sz-medium" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Med</button>
+                            <button onclick="setSize('large')" id="sz-large" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Lrg</button>
+                            <button onclick="setSize('door')" id="sz-door" class="sz-btn py-3 rounded bg-blue-100 text-blue-700 text-[10px] font-bold border-2 border-transparent">Door</button>
+                            <button onclick="togglePic()" id="pic-toggle" class="py-3 rounded border-2 border-dashed border-slate-300 text-[10px] font-bold text-slate-500">🖼️ PIC</button>
                         </div>
-                        <div class="flex gap-1">
-                            <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">Small</button>
-                            <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Large</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Floor Level</p>
+                            <div class="flex gap-1">
+                                <button onclick="setHeight('ground')" id="ht-ground" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Gnd</button>
+                                <button onclick="setHeight('second')" id="ht-second" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">2nd</button>
+                                <button onclick="setHeight('third')" id="ht-third" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">3rd</button>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Dot Setting</p>
+                            <div class="flex gap-1">
+                                <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">Small</button>
+                                <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Large</button>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <input type="file" accept="image/*" id="uploadInput" class="hidden" onchange="handleFile(this)">
                 <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-xs mt-4 uppercase">📁 Upload Photo</button>
             </section>
+
             <section class="bg-blue-600 text-white p-5 rounded-2xl shadow-lg flex justify-between items-center">
                 <div><p class="text-3xl font-black" id="p1Price">$0.00</p></div>
                 <button onclick="goToPage(2)" class="bg-white text-blue-600 px-6 py-3 rounded-xl font-black text-sm uppercase">Details ➜</button>
@@ -80,57 +96,69 @@
     <div id="page2" class="page pb-10">
         <header class="bg-slate-900 text-white p-5 flex items-center sticky top-0 z-50">
             <button onclick="goToPage(1)" class="mr-4 text-blue-400 font-bold uppercase text-xs">⇠ Back</button>
-            <h1 class="text-xl font-bold uppercase italic text-blue-400 tracking-tighter">2. Final Quote</h1>
+            <h1 class="text-xl font-bold uppercase italic text-blue-400">2. Final Quote</h1>
         </header>
+
         <main class="p-4 max-w-md mx-auto space-y-4">
             <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <input type="text" id="bizName" placeholder="Business Name" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
                 <input type="text" id="custName" placeholder="Client Name" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
                 <input type="text" id="custAddr" placeholder="Job Address" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
             </section>
+
             <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h2 class="font-black text-[10px] uppercase text-slate-400 tracking-widest">Screens ($2/ea)</h2>
-                <div class="flex items-center justify-center gap-6 p-3 bg-slate-50 rounded-xl">
-                    <button onclick="changeAddon('screen', -1)" class="w-10 h-10 bg-slate-200 rounded-full font-bold">-</button>
-                    <span id="screenCount" class="text-2xl font-black">0</span>
-                    <button onclick="changeAddon('screen', 1)" class="w-10 h-10 bg-slate-200 rounded-full font-bold">+</button>
+                <h2 class="font-black text-[10px] uppercase text-slate-400 tracking-widest">Add-Ons</h2>
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
+                    <span class="text-sm font-bold">Screens ($2/ea)</span>
+                    <div class="flex items-center gap-4">
+                        <button onclick="changeAddon('screen', -1)" class="w-8 h-8 bg-slate-200 rounded-full font-bold">-</button>
+                        <span id="screenCount" class="font-black">0</span>
+                        <button onclick="changeAddon('screen', 1)" class="w-8 h-8 bg-slate-200 rounded-full font-bold">+</button>
+                    </div>
                 </div>
                 <label class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100">
                     <span class="text-[10px] font-bold text-blue-700 uppercase">Apply Tax (8.25%)</span>
                     <input type="checkbox" id="taxToggle" onchange="calculate()" class="w-5 h-5 rounded border-blue-300">
                 </label>
             </section>
+
             <section class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl space-y-4">
-                <div id="finalList" class="space-y-2 text-[11px] font-mono border-b border-slate-800 pb-4"></div>
+                <h2 class="font-black text-[10px] uppercase text-slate-500 tracking-widest border-b border-slate-800 pb-2 italic">Estimate Price Breakdown</h2>
+                <div id="finalList" class="space-y-1 text-[10px] font-mono border-b border-slate-800 pb-4"></div>
                 <div class="flex justify-between items-center">
-                    <p class="text-4xl font-black text-blue-400" id="p2Price">$0.00</p>
-                    <button onclick="shareQuote()" class="bg-blue-600 px-8 py-4 rounded-2xl font-black text-sm uppercase">Share</button>
+                    <div>
+                        <p class="text-[8px] text-slate-500 uppercase font-bold mb-1">Total Quote</p>
+                        <p class="text-4xl font-black text-blue-400" id="p2Price">$0.00</p>
+                    </div>
+                    <button onclick="shareQuote()" class="bg-blue-600 px-8 py-4 rounded-2xl font-black text-sm uppercase">Share Quote</button>
                 </div>
             </section>
         </main>
     </div>
 
     <script>
-        // YOUR MASTER KEY (Change this to whatever you want)
-        const MASTER_KEY = "CLEAN2026"; 
+        // --- SECURITY: UNIQUE LICENSE KEY LIST ---
+        // Change these words to give different people access.
+        const VALID_KEYS = ["ADMIN100", "BETA_USER_1", "PRO_CLEAN_26", "GUEST_ACCESS"];
 
         function checkLicense() {
             const input = document.getElementById('licenseKey').value.toUpperCase();
-            if(input === MASTER_KEY) {
-                localStorage.setItem('winAI_active', 'true'); // Remembers them on this phone
+            if(VALID_KEYS.includes(input)) {
+                localStorage.setItem('winAI_active_key', input);
                 goToPage(1);
             } else {
-                alert("Invalid Key. Please subscribe to gain access.");
+                alert("Invalid Key. Please contact support for access.");
             }
         }
 
-        // Check if already activated
         window.onload = () => {
-            if(localStorage.getItem('winAI_active') === 'true') {
+            const savedKey = localStorage.getItem('winAI_active_key');
+            if(VALID_KEYS.includes(savedKey)) {
                 goToPage(1);
             }
         };
 
+        // --- PRICING LOGIC ---
         const STD_RATES = { small: 5, medium: 10, large: 15, door: 30 };
         const PIC_RATES = { small: 15, medium: 20, large: 25, door: 45 }; 
         const MULTI = { ground: 1.0, second: 1.3, third: 1.6 };
@@ -245,7 +273,7 @@
         }
 
         function shareQuote() {
-            const biz = document.getElementById('bizName').value || "Window Pro";
+            const biz = document.getElementById('bizName').value || "Company";
             const name = document.getElementById('custName').value || "Client";
             const total = document.getElementById('p2Price').innerText;
             const msg = `ESTIMATE FROM: ${biz}\nFOR: ${name}\nTOTAL: ${total}\n\nThank you!`;
