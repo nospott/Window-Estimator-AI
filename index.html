@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Window Estimator AI</title>
-    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
-        .input-number { -moz-appearance: textfield; }
-        .input-number::-webkit-outer-spin-button, .input-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        body { -webkit-tap-highlight-color: transparent; }
+        .marker { position: absolute; width: 20px; height: 20px; background: red; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-44">
 
-    <header class="bg-slate-900 text-white p-5 shadow-md sticky top-0 z-50 flex justify-between items-center">
+    <header class="bg-slate-900 text-white p-5 shadow-md flex justify-between items-center">
         <h1 class="text-xl font-bold tracking-tight">Window Estimator <span class="text-blue-400">AI</span></h1>
         <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded">Reset</button>
     </header>
@@ -22,50 +20,42 @@
     <main class="p-4 max-w-md mx-auto space-y-6">
 
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <h2 class="font-bold text-slate-800 mb-3 flex items-center gap-2">📸 Site Photos</h2>
+            <h2 class="font-bold text-slate-800 mb-3">📸 Tap Windows to Count</h2>
             <input type="file" accept="image/*" capture="environment" id="cameraInput" class="hidden">
-            <div class="flex flex-col gap-3">
-                <button onclick="document.getElementById('cameraInput').click()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-blue-200 shadow-lg active:scale-95 transition-transform">
-                    Capture New Window
-                </button>
-                <div id="photoPreview" class="flex gap-2 overflow-x-auto p-2 min-h-[40px]"></div>
+            
+            <div id="canvasContainer" class="relative w-full aspect-video bg-slate-100 rounded-xl overflow-hidden mb-3 border-2 border-dashed border-slate-300 flex items-center justify-center">
+                <img id="mainPhoto" class="w-full h-full object-cover hidden" onclick="placeMarker(event)">
+                <p id="placeholderText" class="text-slate-400 text-sm">No photo captured yet</p>
             </div>
+
+            <button onclick="document.getElementById('cameraInput').click()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">
+                Capture New Window
+            </button>
         </section>
 
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <h2 class="font-bold text-slate-800 mb-4 text-center">Enter Window Counts</h2>
-            <div class="grid grid-cols-4 gap-2 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
-                <div>Size</div><div>Gnd</div><div>2nd</div><div>3rd</div>
-            </div>
-            <div id="countGrid" class="space-y-4">
-                </div>
+            <div id="countGrid" class="space-y-4"></div>
         </section>
 
     </main>
 
-    <section class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-5 rounded-2xl shadow-2xl border border-slate-700 z-50">
+    <section class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-5 rounded-2xl shadow-2xl z-50">
         <div class="flex justify-between items-center mb-4">
             <div>
-                <p class="text-slate-400 text-xs uppercase font-bold">Total Estimate</p>
+                <p class="text-slate-400 text-xs font-bold uppercase">Estimate</p>
                 <p class="text-3xl font-black text-blue-400" id="totalPrice">$0.00</p>
             </div>
             <div class="text-right">
-                <p class="text-slate-400 text-xs uppercase font-bold">Total Windows</p>
-                <p class="text-xl font-bold text-white" id="totalCount">0</p>
+                <p class="text-slate-400 text-xs font-bold uppercase">Total Windows</p>
+                <p class="text-xl font-bold" id="totalCount">0</p>
             </div>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-            <button onclick="shareEstimate()" class="bg-slate-800 text-white py-3 rounded-lg font-bold text-sm border border-slate-700">📤 Share</button>
-            <button onclick="downloadSummary()" class="bg-blue-600 text-white py-3 rounded-lg font-bold text-sm">💾 Download</button>
-        </div>
+        <button onclick="downloadSummary()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">💾 Save Estimate</button>
     </section>
 
     <script>
-        // --- PRICING CONFIG ---
-        const BASE_RATES = { small: 5.00, medium: 10.00, large: 15.00 };
+        const BASE_RATES = { small: 5, medium: 10, large: 15 };
         const MULTIPLIERS = { ground: 1.0, second: 1.3, third: 1.6 };
-        const sizes = ['small', 'medium', 'large'];
-        const heights = ['ground', 'second', 'third'];
         
         let counts = JSON.parse(localStorage.getItem('windowCounts')) || {
             small: { ground: 0, second: 0, third: 0 },
@@ -73,72 +63,87 @@
             large: { ground: 0, second: 0, third: 0 }
         };
 
-        // This builds the calculator and handles the math
         function initGrid() {
             const grid = document.getElementById('countGrid');
-            grid.innerHTML = '';
-            sizes.forEach(size => {
+            grid.innerHTML = '<div class="grid grid-cols-4 gap-2 mb-2 text-[10px] font-bold text-slate-400 uppercase text-center"><div>Size</div><div>Gnd</div><div>2nd</div><div>3rd</div></div>';
+            ['small', 'medium', 'large'].forEach(size => {
                 const row = document.createElement('div');
                 row.className = "grid grid-cols-4 gap-2 items-center";
-                row.innerHTML = `
-                    <div class="capitalize font-bold text-slate-700 text-xs">${size}</div>
-                    ${heights.map(h => `
-                        <input type="number" min="0" value="${counts[size][h]}" 
-                            oninput="updateCount('${size}', '${h}', this.value)"
-                            class="input-number w-full p-3 bg-slate-100 border-none rounded-lg text-center font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 text-lg">
-                    `).join('')}
-                `;
+                row.innerHTML = `<div class="capitalize font-bold text-slate-700 text-xs">${size}</div>` + 
+                    ['ground', 'second', 'third'].map(h => `
+                        <input type="number" value="${counts[size][h]}" oninput="updateCount('${size}', '${h}', this.value)" id="input-${size}-${h}"
+                        class="w-full p-3 bg-slate-100 rounded-lg text-center font-bold text-lg">
+                    `).join('');
                 grid.appendChild(row);
             });
             calculate();
         }
 
-        function updateCount(size, height, val) {
-            counts[size][height] = parseInt(val) || 0;
+        function updateCount(size, h, val) {
+            counts[size][h] = parseInt(val) || 0;
             localStorage.setItem('windowCounts', JSON.stringify(counts));
             calculate();
         }
 
         function calculate() {
-            let total = 0;
-            let qty = 0;
-            sizes.forEach(s => {
-                heights.forEach(h => {
-                    total += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
-                    qty += counts[s][h];
-                });
-            });
+            let total = 0, qty = 0;
+            for(let s in counts) for(let h in counts[s]) {
+                total += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
+                qty += counts[s][h];
+            }
             document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
             document.getElementById('totalCount').innerText = qty;
         }
 
-        function downloadSummary() {
-            const total = document.getElementById('totalPrice').innerText;
-            const qty = document.getElementById('totalCount').innerText;
-            let content = `WINDOW ESTIMATE\nTotal Windows: ${qty}\nGrand Total: ${total}`;
-            const blob = new Blob([content], { type: 'text/plain' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'Estimate.txt';
-            a.click();
-        }
+        // --- TAP TO COUNT LOGIC ---
+        function placeMarker(e) {
+            const rect = e.target.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
 
-        function shareEstimate() {
-            const total = document.getElementById('totalPrice').innerText;
-            alert("Estimate: " + total + "\nTake a screenshot to save!");
-        }
+            const marker = document.createElement('div');
+            marker.className = 'marker';
+            marker.style.left = `${(x / rect.width) * 100}%`;
+            marker.style.top = `${(y / rect.height) * 100}%`;
+            document.getElementById('canvasContainer').appendChild(marker);
 
-        function resetData() {
-            if(confirm("Reset all counts?")) {
-                localStorage.clear();
-                location.reload();
-            }
+            // Default auto-increment: Medium/Ground
+            counts.medium.ground++;
+            document.getElementById('input-medium-ground').value = counts.medium.ground;
+            updateCount('medium', 'ground', counts.medium.ground);
         }
 
         document.getElementById('cameraInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = document.getElementById('mainPhoto');
+                    img.src = ev.target.result;
+                    img.classList.remove('hidden');
+                    document.getElementById('placeholderText').classList.add('hidden');
+                    // Clear old markers
+                    document.querySelectorAll('.marker').forEach(m => m.remove());
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function downloadSummary() {
+            const text = `Estimate: ${document.getElementById('totalPrice').innerText}\nWindows: ${document.getElementById('totalCount').innerText}`;
+            const blob = new Blob([text], {type: 'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'Quote.txt';
+            a.click();
+        }
+
+        function resetData() { if(confirm("Clear?")) { localStorage.clear(); location.reload(); } }
+
+        initGrid();
+    </script>
+</body>
+</html>                const reader = new FileReader();
                 reader.onload = (ev) => {
                     const img = document.createElement('img');
                     img.src = ev.target.result;
