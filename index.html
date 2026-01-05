@@ -130,11 +130,21 @@
         }
 
         // Photo Handling
-        document.getElementById('cameraInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const img = document.createElement('img');
-                    img.src = event.target.result;
-                    img.className = "h-20 w-20 object-cover rounded-xl border-2 border-white shadow-md
+        // Updated Photo Handling with error logging
+document.getElementById('cameraInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = document.createElement('img');
+            img.src = event.target.result;
+            img.className = "h-20 w-20 object-cover rounded-xl border-2 border-blue-500 shadow-md";
+            // This ensures it always shows up in the preview area
+            const preview = document.getElementById('photoPreview');
+            preview.appendChild(img); 
+            console.log("Photo added successfully");
+        };
+        reader.onerror = () => alert("Error reading file - try a smaller photo or check permissions.");
+        reader.readAsDataURL(file);
+    }
+});
