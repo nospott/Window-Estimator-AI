@@ -8,18 +8,23 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; touch-action: manipulation; }
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; }
-        .marker-std { width: 18px; height: 18px; }
-        .marker-pic { width: 24px; height: 24px; border-radius: 4px; rotate: 45deg; } /* Diamond shape for Picture Windows */
+        /* Dot Sizes */
+        .marker-sm { width: 14px; height: 14px; }
+        .marker-lg { width: 28px; height: 28px; }
+        /* Shape for Picture Frames */
+        .marker-pic { border-radius: 4px !important; rotate: 45deg; }
+        /* Colors for Levels */
         .marker-ground { background: #22c55e; } 
         .marker-second { background: #3b82f6; } 
+        .marker-third { background: #ef4444; }  
         .btn-active { border-color: #2563eb !important; background-color: #eff6ff !important; color: #1e40af !important; }
-        .pic-active { border-color: #f59e0b !important; background-color: #fffbeb !important; color: #b45309 !important; }
+        .pic-active { border-color: #f59e0b !important; background-color: #fffbeb !important; color: #b45309 !important; border-style: solid !important; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-64">
+<body class="bg-slate-50 min-h-screen pb-64 text-slate-900">
 
     <header class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-50">
-        <h1 class="text-xl font-bold italic text-blue-400">Window Estimator AI</h1>
+        <h1 class="text-xl font-bold italic tracking-tighter text-blue-400">Window Estimator AI</h1>
         <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded">Reset</button>
     </header>
 
@@ -27,62 +32,72 @@
         <section class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
             <div id="canvasContainer" class="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden mb-4 border-2 border-slate-300 flex items-center justify-center">
                 <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                <p id="placeholderText" class="text-slate-400 text-xs text-center">Upload Photo to Start</p>
+                <p id="placeholderText" class="text-slate-400 text-xs text-center px-6">Upload house photo to start</p>
             </div>
 
-            <div class="space-y-4 mb-2">
+            <div class="space-y-4">
                 <div>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">1. Select Size</p>
-                    <div class="grid grid-cols-4 gap-1">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">1. Select Size & Type</p>
+                    <div class="grid grid-cols-5 gap-1">
                         <button onclick="setSize('small')" id="sz-small" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Small</button>
                         <button onclick="setSize('medium')" id="sz-medium" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Med</button>
                         <button onclick="setSize('large')" id="sz-large" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Lrg</button>
                         <button onclick="setSize('door')" id="sz-door" class="sz-btn py-3 rounded bg-blue-100 text-blue-700 text-[10px] font-bold border-2 border-transparent">Door</button>
+                        <button onclick="togglePic()" id="pic-toggle" class="py-3 rounded border-2 border-dashed border-slate-300 text-[10px] font-bold text-slate-500">🖼️ PIC</button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">2. Type Modifier</p>
-                        <button onclick="togglePic()" id="pic-toggle" class="w-full py-3 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-[10px] font-bold text-slate-500 transition-all">🖼️ PICTURE FRAME</button>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">2. Floor Level</p>
+                        <div class="flex gap-1">
+                            <button onclick="setHeight('ground')" id="ht-ground" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Gnd</button>
+                            <button onclick="setHeight('second')" id="ht-second" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">2nd</button>
+                            <button onclick="setHeight('third')" id="ht-third" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">3rd</button>
+                        </div>
                     </div>
                     <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">3. Floor</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">3. Dot Size</p>
                         <div class="flex gap-1">
-                            <button onclick="setHeight('ground')" id="ht-ground" class="ht-btn flex-1 py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Gnd</button>
-                            <button onclick="setHeight('second')" id="ht-second" class="ht-btn flex-1 py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">2nd</button>
+                            <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">Small</button>
+                            <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Large</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <input type="file" accept="image/*" id="uploadInput" class="hidden" onchange="handleFile(this)">
-            <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm mt-2 shadow-lg">📁 Upload Photo</button>
+            <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm mt-4 shadow-xl active:scale-95 transition-transform">📁 Upload Photo</button>
         </section>
 
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <h2 class="font-bold text-slate-800 text-sm mb-3">Estimate Details</h2>
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-bold text-slate-800 text-sm italic">Review Quote</h2>
+                <label class="flex items-center gap-2 text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
+                    <input type="checkbox" id="taxToggle" onchange="calculate()"> +8.25% TAX
+                </label>
+            </div>
             <div id="countGrid" class="space-y-1 text-[11px]"></div>
         </section>
     </main>
 
     <footer class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-6 rounded-3xl shadow-2xl z-50 border border-slate-800">
         <div class="flex justify-between items-center mb-4">
-            <p class="text-4xl font-black text-blue-400" id="totalPrice">$0.00</p>
-            <button onclick="shareQuote()" class="bg-blue-600 px-8 py-3 rounded-2xl font-bold text-sm">SHARE</button>
+            <div>
+                <p class="text-blue-400 text-4xl font-black" id="totalPrice">$0.00</p>
+                <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest mt-1">Total Estimated Quote</p>
+            </div>
+            <button onclick="shareQuote()" class="bg-blue-600 px-8 py-4 rounded-2xl font-bold text-sm shadow-lg shadow-blue-500/20 active:scale-95 transition-all">SHARE SMS</button>
         </div>
     </footer>
 
     <script>
-        // UPDATED PRICING MATRIX
-        // Standard Windows
         const STD_RATES = { small: 5, medium: 10, large: 15, door: 30 };
-        // Picture Frame Windows (Add $10 premium to base)
         const PIC_RATES = { small: 15, medium: 20, large: 25, door: 45 }; 
-        const MULTI = { ground: 1.0, second: 1.3 };
+        const MULTI = { ground: 1.0, second: 1.3, third: 1.6 };
 
-        let selSize = 'small', selHeight = 'ground', isPic = false;
-        let counts = JSON.parse(localStorage.getItem('winAI_v4')) || {};
+        let selSize = 'small', selHeight = 'ground', selDotSize = 'lg', isPic = false;
+        let counts = JSON.parse(localStorage.getItem('winAI_FINAL')) || {};
 
         function setSize(s) {
             selSize = s;
@@ -96,16 +111,17 @@
             document.getElementById(`ht-${h}`).classList.add('btn-active');
         }
 
+        function setDotSize(v) {
+            selDotSize = v;
+            document.querySelectorAll('.dot-btn').forEach(b => b.classList.remove('btn-active'));
+            document.getElementById(`dot-${v}`).classList.add('btn-active');
+        }
+
         function togglePic() {
             isPic = !isPic;
             const btn = document.getElementById('pic-toggle');
-            if(isPic) {
-                btn.classList.add('pic-active');
-                btn.innerText = '🖼️ PICTURE ON';
-            } else {
-                btn.classList.remove('pic-active');
-                btn.innerText = '🖼️ PICTURE FRAME';
-            }
+            btn.classList.toggle('pic-active', isPic);
+            btn.innerText = isPic ? '🖼️ PIC ON' : '🖼️ PIC';
         }
 
         function initGrid() {
@@ -114,8 +130,8 @@
             for(let key in counts) {
                 if(counts[key] > 0) {
                     const row = document.createElement('div');
-                    row.className = "flex justify-between items-center bg-slate-50 p-2 rounded border-l-4 " + (key.includes('pic') ? 'border-orange-400' : 'border-blue-400');
-                    row.innerHTML = `<span class="capitalize font-bold">${key.replace('_',' ')}</span> <span class="font-mono">Qty: ${counts[key]}</span>`;
+                    row.className = "flex justify-between items-center bg-slate-50 p-2 rounded border-l-4 " + (key.includes('_pic_') ? 'border-amber-400' : 'border-blue-400');
+                    row.innerHTML = `<span class="capitalize font-bold">${key.replace(/_/g,' ')}</span> <span class="font-mono">Qty: ${counts[key]}</span>`;
                     grid.appendChild(row);
                 }
             }
@@ -125,12 +141,13 @@
         function calculate() {
             let total = 0;
             for(let key in counts) {
-                const [size, type, height] = key.split('_');
-                const rate = type === 'pic' ? PIC_RATES[size] : STD_RATES[size];
-                total += counts[key] * (rate * MULTI[height]);
+                const parts = key.split('_');
+                const rate = parts[1] === 'pic' ? PIC_RATES[parts[0]] : STD_RATES[parts[0]];
+                total += counts[key] * (rate * MULTI[parts[2]]);
             }
+            if(document.getElementById('taxToggle').checked) total *= 1.0825;
             document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
-            localStorage.setItem('winAI_v4', JSON.stringify(counts));
+            localStorage.setItem('winAI_FINAL', JSON.stringify(counts));
         }
 
         function placeMarker(e) {
@@ -138,7 +155,7 @@
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
             const marker = document.createElement('div');
-            marker.className = `marker marker-${selHeight} ` + (isPic ? 'marker-pic' : 'marker-std');
+            marker.className = `marker marker-${selHeight} marker-${selDotSize} ` + (isPic ? 'marker-pic' : '');
             marker.style.left = `${x}%`; marker.style.top = `${y}%`;
             document.getElementById('canvasContainer').appendChild(marker);
             
@@ -154,16 +171,18 @@
                 img.src = e.target.result;
                 img.classList.remove('hidden');
                 document.getElementById('placeholderText').classList.add('hidden');
+                document.querySelectorAll('.marker').forEach(m => m.remove());
             };
             reader.readAsDataURL(input.files[0]);
         }
 
         function shareQuote() {
-            const text = `Window Cleaning Quote: ${document.getElementById('totalPrice').innerText}`;
+            const total = document.getElementById('totalPrice').innerText;
+            const text = `Window Cleaning Quote\nTotal: ${total}`;
             if (navigator.share) navigator.share({ text: text }); else alert(text);
         }
 
-        function resetData() { if(confirm("Reset?")) { localStorage.clear(); location.reload(); } }
+        function resetData() { if(confirm("Clear everything?")) { localStorage.clear(); location.reload(); } }
         initGrid();
     </script>
 </body>
