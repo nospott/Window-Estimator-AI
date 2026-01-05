@@ -7,12 +7,12 @@
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
         .input-number { -moz-appearance: textfield; }
         .input-number::-webkit-outer-spin-button, .input-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-40">
+<body class="bg-slate-50 min-h-screen pb-44">
 
     <header class="bg-slate-900 text-white p-5 shadow-md sticky top-0 z-50 flex justify-between items-center">
         <h1 class="text-xl font-bold tracking-tight">Window Estimator <span class="text-blue-400">AI</span></h1>
@@ -28,38 +28,40 @@
                 <button onclick="document.getElementById('cameraInput').click()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-blue-200 shadow-lg active:scale-95 transition-transform">
                     Capture New Window
                 </button>
-                <div id="photoPreview" class="flex gap-2 overflow-x-auto p-2 min-h-[80px] bg-slate-50 rounded-lg"></div>
+                <div id="photoPreview" class="flex gap-2 overflow-x-auto p-2 min-h-[40px]"></div>
             </div>
         </section>
 
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <h2 class="font-bold text-slate-800 mb-4">Window Counts</h2>
-            <div class="grid grid-cols-4 gap-2 mb-2 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">
+            <h2 class="font-bold text-slate-800 mb-4 text-center">Enter Window Counts</h2>
+            <div class="grid grid-cols-4 gap-2 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">
                 <div>Size</div><div>Gnd</div><div>2nd</div><div>3rd</div>
             </div>
-            <div id="countGrid" class="space-y-4"></div>
-        </section>
-
-        <section class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-5 rounded-2xl shadow-2xl border border-slate-700">
-            <div class="flex justify-between items-center mb-4">
-                <div>
-                    <p class="text-slate-400 text-xs uppercase font-bold">Total Estimate</p>
-                    <p class="text-3xl font-black text-blue-400" id="totalPrice">$0.00</p>
+            <div id="countGrid" class="space-y-4">
                 </div>
-                <div class="text-right">
-                    <p class="text-slate-400 text-xs uppercase font-bold">Count</p>
-                    <p class="text-xl font-bold" id="totalCount">0</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="shareEstimate()" class="bg-slate-700 text-white py-3 rounded-lg font-bold text-sm">📤 Share</button>
-                <button onclick="downloadSummary()" class="bg-blue-600 text-white py-3 rounded-lg font-bold text-sm">💾 Download</button>
-            </div>
         </section>
 
     </main>
 
+    <section class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-5 rounded-2xl shadow-2xl border border-slate-700 z-50">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <p class="text-slate-400 text-xs uppercase font-bold">Total Estimate</p>
+                <p class="text-3xl font-black text-blue-400" id="totalPrice">$0.00</p>
+            </div>
+            <div class="text-right">
+                <p class="text-slate-400 text-xs uppercase font-bold">Total Windows</p>
+                <p class="text-xl font-bold text-white" id="totalCount">0</p>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="shareEstimate()" class="bg-slate-800 text-white py-3 rounded-lg font-bold text-sm border border-slate-700">📤 Share</button>
+            <button onclick="downloadSummary()" class="bg-blue-600 text-white py-3 rounded-lg font-bold text-sm">💾 Download</button>
+        </div>
+    </section>
+
     <script>
+        // --- PRICING CONFIG ---
         const BASE_RATES = { small: 5.00, medium: 10.00, large: 15.00 };
         const MULTIPLIERS = { ground: 1.0, second: 1.3, third: 1.6 };
         const sizes = ['small', 'medium', 'large'];
@@ -71,6 +73,7 @@
             large: { ground: 0, second: 0, third: 0 }
         };
 
+        // This builds the calculator and handles the math
         function initGrid() {
             const grid = document.getElementById('countGrid');
             grid.innerHTML = '';
@@ -78,9 +81,9 @@
                 const row = document.createElement('div');
                 row.className = "grid grid-cols-4 gap-2 items-center";
                 row.innerHTML = `
-                    <div class="capitalize font-bold text-slate-700 text-sm">${size}</div>
+                    <div class="capitalize font-bold text-slate-700 text-xs">${size}</div>
                     ${heights.map(h => `
-                        <input type="number" value="${counts[size][h]}" 
+                        <input type="number" min="0" value="${counts[size][h]}" 
                             oninput="updateCount('${size}', '${h}', this.value)"
                             class="input-number w-full p-3 bg-slate-100 border-none rounded-lg text-center font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 text-lg">
                     `).join('')}
@@ -112,177 +115,43 @@
         function downloadSummary() {
             const total = document.getElementById('totalPrice').innerText;
             const qty = document.getElementById('totalCount').innerText;
-            const date = new Date().toLocaleString();
-            let content = `WINDOW CLEANING ESTIMATE\nDate: ${date}\n--------------------------\n`;
-            
-            sizes.forEach(s => {
-                heights.forEach(h => {
-                    if(counts[s][h] > 0) content += `${s.toUpperCase()} (${h}): ${counts[s][h]} windows\n`;
-                });
-            });
-            
-            content += `--------------------------\nTOTAL WINDOWS: ${qty}\nGRAND TOTAL: ${total}\n\nThank you for your business!`;
-            
+            let content = `WINDOW ESTIMATE\nTotal Windows: ${qty}\nGrand Total: ${total}`;
             const blob = new Blob([content], { type: 'text/plain' });
-            const anchor = document.createElement('a');
-            anchor.download = `Estimate_${Date.now()}.txt`;
-            anchor.href = window.URL.createObjectURL(blob);
-            anchor.click();
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'Estimate.txt';
+            a.click();
         }
 
         function shareEstimate() {
             const total = document.getElementById('totalPrice').innerText;
-            const qty = document.getElementById('totalCount').innerText;
-            const text = `Window Cleaning Quote: ${total} for ${qty} windows. Generated via Window Estimator AI.`;
-            if (navigator.share) {
-                navigator.share({ title: 'Window Estimate', text: text });
-            } else {
-                alert(text);
-            }
+            alert("Estimate: " + total + "\nTake a screenshot to save!");
         }
 
         function resetData() {
-            if(confirm("Clear all counts and photos?")) {
+            if(confirm("Reset all counts?")) {
                 localStorage.clear();
                 location.reload();
             }
         }
 
-        // Camera Fix for Android Preview
         document.getElementById('cameraInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
+                reader.onload = (ev) => {
                     const img = document.createElement('img');
-                    img.src = event.target.result;
-                    img.className = "h-20 w-20 object-cover rounded-xl border-2 border-blue-500 flex-shrink-0 shadow-sm";
+                    img.src = ev.target.result;
+                    img.className = "h-16 w-16 object-cover rounded-lg border";
                     document.getElementById('photoPreview').appendChild(img);
                 };
                 reader.readAsDataURL(file);
             }
         });
 
+        // Start the app logic
         initGrid();
     </script>
 </body>
-</html>        };
-
-        function initGrid() {
-            const grid = document.getElementById('countGrid');
-            grid.innerHTML = '';
-            sizes.forEach(size => {
-                const row = document.createElement('div');
-                row.className = "grid grid-cols-4 gap-2 items-center";
-                row.innerHTML = `
-                    <div class="capitalize font-bold text-slate-700">${size}</div>
-                    ${heights.map(h => `
-                        <input type="number" value="${counts[size][h]}" 
-                            oninput="updateCount('${size}', '${h}', this.value)"
-                            class="input-number w-full p-3 bg-slate-100 border-none rounded-lg text-center font-bold text-slate-800 focus:ring-2 focus:ring-blue-500">
-                    `).join('')}
-                `;
-                grid.appendChild(row);
-            });
-            calculate();
-        }
-
-        function updateCount(size, height, val) {
-            counts[size][height] = parseInt(val) || 0;
-            localStorage.setItem('windowCounts', JSON.stringify(counts));
-            calculate();
-        }
-
-        function calculate() {
-            let total = 0;
-            let qty = 0;
-            sizes.forEach(s => {
-                heights.forEach(h => {
-                    total += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
-                    qty += counts[s][h];
-                });
-            });
-            document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('totalCount').innerText = qty;
-        }
-
-        function downloadSummary            small: { ground: 0, second: 0, third: 0 },
-            medium: { ground: 0, second: 0, third: 0 },
-            large: { ground: 0, second: 0, third: 0 }
-        };
-
-        // Build UI
-        function initGrid() {
-            const grid = document.getElementById('countGrid');
-            grid.innerHTML = '';
-            sizes.forEach(size => {
-                const row = document.createElement('div');
-                row.className = "grid grid-cols-4 gap-2 items-center";
-                row.innerHTML = `
-                    <div class="capitalize font-bold text-slate-700">${size}</div>
-                    ${heights.map(h => `
-                        <input type="number" value="${counts[size][h]}" 
-                            oninput="updateCount('${size}', '${h}', this.value)"
-                            class="input-number w-full p-3 bg-slate-100 border-none rounded-lg text-center font-bold text-slate-800 focus:ring-2 focus:ring-blue-500">
-                    `).join('')}
-                `;
-                grid.appendChild(row);
-            });
-            calculate();
-        }
-
-        function updateCount(size, height, val) {
-            counts[size][height] = parseInt(val) || 0;
-            localStorage.setItem('windowCounts', JSON.stringify(counts));
-            calculate();
-        }
-
-        function calculate() {
-            let total = 0;
-            let qty = 0;
-            sizes.forEach(s => {
-                heights.forEach(h => {
-                    total += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
-                    qty += counts[s][h];
-                });
-            });
-            document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
-            document.getElementById('totalCount').innerText = qty;
-        }
-
-        function resetData() {
-            if(confirm("Clear all counts?")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        function shareEstimate() {
-            const total = document.getElementById('totalPrice').innerText;
-            const text = `Window Cleaning Estimate\nTotal Windows: ${document.getElementById('totalCount').innerText}\nEstimated Total: ${total}`;
-            if (navigator.share) {
-                navigator.share({ title: 'Window Estimate', text: text });
-            } else {
-                alert(text);
-            }
-        }
-
-        // Photo Handling
-        // Updated Photo Handling with error logging
-document.getElementById('cameraInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const img = document.createElement('img');
-            img.src = event.target.result;
-            img.className = "h-20 w-20 object-cover rounded-xl border-2 border-blue-500 shadow-md";
-            // This ensures it always shows up in the preview area
-            const preview = document.getElementById('photoPreview');
-            preview.appendChild(img); 
-            console.log("Photo added successfully");
-        };
-        reader.onerror = () => alert("Error reading file - try a smaller photo or check permissions.");
-        reader.readAsDataURL(file);
-    }
+</html>
 });
