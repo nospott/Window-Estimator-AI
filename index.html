@@ -3,113 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Window Estimator AI</title>
+    <title>Window Estimator AI Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
-        .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; transition: all 0.2s ease; }
-        /* Dot Size Classes */
+        .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; }
         .marker-sm { width: 14px; height: 14px; }
         .marker-lg { width: 28px; height: 28px; }
-        /* Color Classes */
         .marker-ground { background: #22c55e; } 
         .marker-second { background: #3b82f6; } 
         .marker-third { background: #ef4444; }  
         .btn-active { border-color: #2563eb !important; background-color: #eff6ff !important; color: #1e40af !important; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-60">
+<body class="bg-slate-50 min-h-screen pb-64">
 
-    <header class="bg-slate-900 text-white p-5 shadow-md flex justify-between items-center sticky top-0 z-50">
-        <h1 class="text-xl font-bold text-blue-400 uppercase tracking-tighter">Window Estimator AI</h1>
-        <button onclick="resetData()" class="text-xs bg-red-900/50 border border-red-500/50 px-3 py-1 rounded text-red-200">Reset</button>
+    <header class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-50">
+        <h1 class="text-xl font-bold text-blue-400">Window Estimator <span class="text-white">PRO</span></h1>
+        <button onclick="resetData()" class="text-xs bg-red-900/30 px-3 py-1 rounded">Reset</button>
     </header>
 
     <main class="p-4 max-w-md mx-auto space-y-4">
-
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
             <div id="canvasContainer" class="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden mb-4 border-2 border-slate-300 flex items-center justify-center">
                 <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                <p id="placeholderText" class="text-slate-400 text-sm">Upload/Capture Photo to Tap Windows</p>
+                <p id="placeholderText" class="text-slate-400 text-xs text-center px-6">Upload house photo to start tapping windows & doors</p>
             </div>
 
             <div class="space-y-4 mb-4">
                 <div>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Window Size (Pricing)</p>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="setMode('size', 'small')" id="sz-small" class="size-btn py-2 rounded-lg border-2 border-transparent bg-slate-100 text-slate-600 font-bold text-xs btn-active">Small</button>
-                        <button onclick="setMode('size', 'medium')" id="sz-medium" class="size-btn py-2 rounded-lg border-2 border-transparent bg-slate-100 text-slate-600 font-bold text-xs">Medium</button>
-                        <button onclick="setMode('size', 'large')" id="sz-large" class="size-btn py-2 rounded-lg border-2 border-transparent bg-slate-100 text-slate-600 font-bold text-xs">Large</button>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Select Item Type</p>
+                    <div class="grid grid-cols-5 gap-1">
+                        <button onclick="setMode('size', 'small')" id="sz-small" class="size-btn py-2 rounded bg-slate-100 text-[10px] font-bold btn-active">Small</button>
+                        <button onclick="setMode('size', 'medium')" id="sz-medium" class="size-btn py-2 rounded bg-slate-100 text-[10px] font-bold">Med</button>
+                        <button onclick="setMode('size', 'large')" id="sz-large" class="size-btn py-2 rounded bg-slate-100 text-[10px] font-bold">Lrg</button>
+                        <button onclick="setMode('size', 'picture')" id="sz-picture" class="size-btn py-2 rounded bg-orange-100 text-orange-700 text-[10px] font-bold border-2 border-transparent">Picture</button>
+                        <button onclick="setMode('size', 'door')" id="sz-door" class="size-btn py-2 rounded bg-blue-100 text-blue-700 text-[10px] font-bold border-2 border-transparent">Door</button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Height Level</p>
-                        <div class="grid grid-cols-1 gap-1">
-                            <button onclick="setMode('height', 'ground')" id="ht-ground" class="ht-btn py-1 rounded-lg border-2 border-transparent bg-slate-100 text-slate-600 font-bold text-[10px] btn-active">Ground</button>
-                            <button onclick="setMode('height', 'second')" id="ht-second" class="ht-btn py-1 rounded-lg border-2 border-transparent bg-slate-100 text-slate-600 font-bold text-[10px]">2nd Story</button>
-                            <button onclick="setMode('height', 'third')" id="ht-third" class="ht-btn py-1 rounded-lg border-2 border-transparent bg-slate-100 text-slate-600 font-bold text-[10px]">3rd Story</button>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Floor Level</p>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="setMode('height', 'ground')" id="ht-ground" class="ht-btn py-1 rounded bg-slate-100 text-[10px] font-bold btn-active">Ground</button>
+                            <button onclick="setMode('height', 'second')" id="ht-second" class="ht-btn py-1 rounded bg-slate-100 text-[10px] font-bold">2nd Floor</button>
                         </div>
                     </div>
                     <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Dot Size (Visual)</p>
-                        <div class="grid grid-cols-1 gap-1">
-                            <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn py-3 rounded-lg border-2 border-transparent bg-slate-100 text-slate-600 font-bold text-[10px]">Small Dot •</button>
-                            <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn py-3 rounded-lg border-2 border-transparent bg-slate-100 text-slate-600 font-bold text-[10px] btn-active">Large Dot ●</button>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Dot Size</p>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn py-1 rounded bg-slate-100 text-[10px] font-bold">Small Dot</button>
+                            <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn py-1 rounded bg-slate-100 text-[10px] font-bold btn-active">Large Dot</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-2">
-                <input type="file" accept="image/*" capture="environment" id="cameraInput" class="hidden" onchange="handleFile(this)">
                 <input type="file" accept="image/*" id="uploadInput" class="hidden" onchange="handleFile(this)">
-                <button onclick="document.getElementById('cameraInput').click()" class="bg-blue-600 text-white py-3 rounded-xl font-bold text-sm">📸 Camera</button>
-                <button onclick="document.getElementById('uploadInput').click()" class="bg-slate-800 text-white py-3 rounded-xl font-bold text-sm">📁 Upload</button>
+                <button onclick="document.getElementById('uploadInput').click()" class="bg-slate-800 text-white py-3 rounded-xl font-bold text-sm w-full col-span-2">📁 Upload Photo</button>
             </div>
         </section>
 
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex justify-between items-center mb-4 text-slate-800 font-bold">
-                <h2>Review Counts</h2>
-                <label class="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-full cursor-pointer">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-bold text-slate-800 text-sm">Review Quote</h2>
+                <label class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
                     <input type="checkbox" id="taxToggle" onchange="calculate()"> +8.25% TAX
                 </label>
             </div>
-            <div id="countGrid" class="space-y-3"></div>
+            <div id="countGrid" class="space-y-2 text-xs"></div>
         </section>
     </main>
 
-    <section class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-5 rounded-2xl shadow-2xl z-50 border border-slate-700">
+    <section class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-5 rounded-2xl shadow-2xl z-50">
         <div class="flex justify-between items-center mb-4">
-            <div>
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Grand Total</p>
-                <p class="text-3xl font-black text-blue-400" id="totalPrice">$0.00</p>
-            </div>
-            <div class="text-right">
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Windows</p>
-                <p class="text-xl font-bold" id="totalCount">0</p>
-            </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-            <button onclick="shareQuote()" class="bg-slate-700 text-white py-4 rounded-xl font-bold text-sm">💬 Share SMS</button>
-            <button onclick="downloadSummary()" class="bg-blue-600 text-white py-4 rounded-xl font-bold text-sm">💾 Download</button>
+            <div><p class="text-blue-400 text-2xl font-black" id="totalPrice">$0.00</p></div>
+            <button onclick="shareQuote()" class="bg-blue-600 px-6 py-3 rounded-xl font-bold text-sm">💬 Share Quote</button>
         </div>
     </section>
 
     <script>
-        const BASE_RATES = { small: 5, medium: 10, large: 15 };
-        const MULTIPLIERS = { ground: 1.0, second: 1.3, third: 1.6 };
-
-        let selSize = 'small';
-        let selHeight = 'ground';
-        let selDotSize = 'lg'; // Default dot size
-
-        let counts = JSON.parse(localStorage.getItem('windowCounts')) || {
-            small: { ground: 0, second: 0, third: 0 },
-            medium: { ground: 0, second: 0, third: 0 },
-            large: { ground: 0, second: 0, third: 0 }
+        // UPDATED PRICING
+        const BASE_RATES = { small: 5, medium: 10, large: 15, picture: 25, door: 35 };
+        const MULTIPLIERS = { ground: 1.0, second: 1.3 };
+        
+        let selSize = 'small', selHeight = 'ground', selDotSize = 'lg';
+        let counts = JSON.parse(localStorage.getItem('winCounts')) || {
+            small: {ground:0, second:0}, medium: {ground:0, second:0}, 
+            large: {ground:0, second:0}, picture: {ground:0, second:0}, door: {ground:0, second:0}
         };
 
         function setMode(type, val) {
@@ -124,43 +107,38 @@
             }
         }
 
-        function setDotSize(val) {
-            selDotSize = val;
+        function setDotSize(v) {
+            selDotSize = v;
             document.querySelectorAll('.dot-btn').forEach(b => b.classList.remove('btn-active'));
-            document.getElementById(`dot-${val}`).classList.add('btn-active');
+            document.getElementById(`dot-${v}`).classList.add('btn-active');
         }
 
         function initGrid() {
             const grid = document.getElementById('countGrid');
-            grid.innerHTML = '<div class="grid grid-cols-4 gap-2 text-[9px] font-bold text-slate-400 uppercase text-center mb-1"><div>Size</div><div>Gnd</div><div>2nd</div><div>3rd</div></div>';
-            ['small', 'medium', 'large'].forEach(s => {
+            grid.innerHTML = '';
+            for(let s in counts) {
                 const row = document.createElement('div');
-                row.className = "grid grid-cols-4 gap-2 items-center";
-                row.innerHTML = `<div class="font-bold text-slate-700 text-xs capitalize">${s}</div>` + 
-                    ['ground', 'second', 'third'].map(h => `
-                        <input type="number" value="${counts[s][h]}" oninput="updateCount('${s}', '${h}', this.value)" id="in-${s}-${h}"
-                        class="w-full p-2 bg-slate-50 border border-slate-200 rounded text-center font-bold text-sm">
-                    `).join('');
+                row.className = "flex justify-between items-center border-b border-slate-100 pb-1";
+                row.innerHTML = `<span class="capitalize font-medium w-20">${s}</span>
+                    <div class="flex gap-2">
+                        <input type="number" value="${counts[s].ground}" oninput="updateCount('${s}','ground',this.value)" class="w-12 p-1 bg-slate-50 text-center rounded border">
+                        <input type="number" value="${counts[s].second}" oninput="updateCount('${s}','second',this.value)" class="w-12 p-1 bg-slate-50 text-center rounded border">
+                    </div>`;
                 grid.appendChild(row);
-            });
+            }
             calculate();
         }
 
-        function updateCount(s, h, v) {
-            counts[s][h] = parseInt(v) || 0;
-            localStorage.setItem('windowCounts', JSON.stringify(counts));
-            calculate();
-        }
+        function updateCount(s, h, v) { counts[s][h] = parseInt(v) || 0; calculate(); }
 
         function calculate() {
-            let sub = 0, qty = 0;
+            let total = 0;
             for(let s in counts) for(let h in counts[s]) {
-                sub += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
-                qty += counts[s][h];
+                total += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
             }
-            if(document.getElementById('taxToggle').checked) sub *= 1.0825;
-            document.getElementById('totalPrice').innerText = `$${sub.toFixed(2)}`;
-            document.getElementById('totalCount').innerText = qty;
+            if(document.getElementById('taxToggle').checked) total *= 1.0825;
+            document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
+            localStorage.setItem('winCounts', JSON.stringify(counts));
         }
 
         function placeMarker(e) {
@@ -168,48 +146,31 @@
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
             const marker = document.createElement('div');
-            // Applies both the color class and the size class
             marker.className = `marker marker-${selHeight} marker-${selDotSize}`;
             marker.style.left = `${x}%`; marker.style.top = `${y}%`;
             document.getElementById('canvasContainer').appendChild(marker);
-            
             counts[selSize][selHeight]++;
-            document.getElementById(`in-${selSize}-${selHeight}`).value = counts[selSize][selHeight];
-            updateCount(selSize, selHeight, counts[selSize][selHeight]);
+            initGrid();
         }
 
         function handleFile(input) {
-            const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = document.getElementById('mainPhoto');
-                    img.src = e.target.result;
-                    img.classList.remove('hidden');
-                    document.getElementById('placeholderText').classList.add('hidden');
-                    document.querySelectorAll('.marker').forEach(m => m.remove());
-                };
-                reader.readAsDataURL(file);
-            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.getElementById('mainPhoto');
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                document.getElementById('placeholderText').classList.add('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
         }
 
-        async function shareQuote() {
-            const total = document.getElementById('totalPrice').innerText;
-            const msg = `Window Cleaning Quote\nTotal Windows: ${document.getElementById('totalCount').innerText}\nTotal: ${total}`;
-            if (navigator.share) await navigator.share({ title: 'Quote', text: msg });
+        function shareQuote() {
+            const msg = `Window Cleaning Estimate\nTotal Quote: ${document.getElementById('totalPrice').innerText}`;
+            if (navigator.share) navigator.share({ text: msg });
             else alert(msg);
         }
 
-        function downloadSummary() {
-            const total = document.getElementById('totalPrice').innerText;
-            const blob = new Blob([`Quote: ${total}`], {type: 'text/plain'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'Quote.txt';
-            a.click();
-        }
-
-        function resetData() { if(confirm("Clear?")) { localStorage.clear(); location.reload(); } }
+        function resetData() { if(confirm("Reset?")) { localStorage.clear(); location.reload(); } }
         initGrid();
     </script>
 </body>
