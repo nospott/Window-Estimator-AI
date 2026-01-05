@@ -8,19 +8,18 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; touch-action: manipulation; }
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; }
-        .marker-sm { width: 14px; height: 14px; }
-        .marker-lg { width: 28px; height: 28px; }
+        .marker-std { width: 18px; height: 18px; }
+        .marker-pic { width: 24px; height: 24px; border-radius: 4px; rotate: 45deg; } /* Diamond shape for Picture Windows */
         .marker-ground { background: #22c55e; } 
         .marker-second { background: #3b82f6; } 
         .btn-active { border-color: #2563eb !important; background-color: #eff6ff !important; color: #1e40af !important; }
-        input[type="number"] { -moz-appearance: textfield; }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .pic-active { border-color: #f59e0b !important; background-color: #fffbeb !important; color: #b45309 !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-64">
 
     <header class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-50">
-        <h1 class="text-xl font-bold">Window Estimator <span class="text-blue-400">AI</span></h1>
+        <h1 class="text-xl font-bold italic text-blue-400">Window Estimator AI</h1>
         <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded">Reset</button>
     </header>
 
@@ -28,102 +27,95 @@
         <section class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
             <div id="canvasContainer" class="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden mb-4 border-2 border-slate-300 flex items-center justify-center">
                 <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                <p id="placeholderText" class="text-slate-400 text-xs text-center px-6">Upload photo to start counting</p>
+                <p id="placeholderText" class="text-slate-400 text-xs text-center">Upload Photo to Start</p>
             </div>
 
             <div class="space-y-4 mb-2">
                 <div>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Window / Door Type</p>
-                    <div class="grid grid-cols-5 gap-1">
-                        <button onclick="setMode('size', 'small')" id="sz-small" class="size-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Small</button>
-                        <button onclick="setMode('size', 'medium')" id="sz-medium" class="size-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Med</button>
-                        <button onclick="setMode('size', 'large')" id="sz-large" class="size-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Lrg</button>
-                        <button onclick="setMode('size', 'picture')" id="sz-picture" class="size-btn py-3 rounded bg-orange-100 text-orange-700 text-[10px] font-bold border-2 border-transparent">Pic</button>
-                        <button onclick="setMode('size', 'door')" id="sz-door" class="size-btn py-3 rounded bg-blue-100 text-blue-700 text-[10px] font-bold border-2 border-transparent">Door</button>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">1. Select Size</p>
+                    <div class="grid grid-cols-4 gap-1">
+                        <button onclick="setSize('small')" id="sz-small" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Small</button>
+                        <button onclick="setSize('medium')" id="sz-medium" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Med</button>
+                        <button onclick="setSize('large')" id="sz-large" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Lrg</button>
+                        <button onclick="setSize('door')" id="sz-door" class="sz-btn py-3 rounded bg-blue-100 text-blue-700 text-[10px] font-bold border-2 border-transparent">Door</button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Specialty Size</p>
-                        <div class="flex gap-1">
-                            <button onclick="setSpecialty('std')" id="spec-std" class="spec-btn flex-1 py-2 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Standard</button>
-                            <button onclick="setSpecialty('xl')" id="spec-xl" class="spec-btn flex-1 py-2 rounded bg-amber-100 text-amber-800 text-[10px] font-bold border-2 border-transparent">XL / Oversize</button>
-                        </div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">2. Type Modifier</p>
+                        <button onclick="togglePic()" id="pic-toggle" class="w-full py-3 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 text-[10px] font-bold text-slate-500 transition-all">🖼️ PICTURE FRAME</button>
                     </div>
                     <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Floor</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">3. Floor</p>
                         <div class="flex gap-1">
-                            <button onclick="setMode('height', 'ground')" id="ht-ground" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Gnd</button>
-                            <button onclick="setMode('height', 'second')" id="ht-second" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">2nd</button>
+                            <button onclick="setHeight('ground')" id="ht-ground" class="ht-btn flex-1 py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Gnd</button>
+                            <button onclick="setHeight('second')" id="ht-second" class="ht-btn flex-1 py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">2nd</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <input type="file" accept="image/*" id="uploadInput" class="hidden" onchange="handleFile(this)">
-            <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold text-sm mt-2">📁 Upload Photo</button>
+            <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm mt-2 shadow-lg">📁 Upload Photo</button>
         </section>
 
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <h2 class="font-bold text-slate-800 text-sm mb-3">Line Items</h2>
-            <div id="countGrid" class="space-y-2 text-xs"></div>
+            <h2 class="font-bold text-slate-800 text-sm mb-3">Estimate Details</h2>
+            <div id="countGrid" class="space-y-1 text-[11px]"></div>
         </section>
     </main>
 
-    <footer class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-5 rounded-3xl shadow-2xl z-50 border border-slate-800">
+    <footer class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-6 rounded-3xl shadow-2xl z-50 border border-slate-800">
         <div class="flex justify-between items-center mb-4">
-            <div><p class="text-3xl font-black text-blue-400" id="totalPrice">$0.00</p></div>
-            <button onclick="shareQuote()" class="bg-blue-600 px-6 py-3 rounded-2xl font-bold text-sm">💬 Share Quote</button>
+            <p class="text-4xl font-black text-blue-400" id="totalPrice">$0.00</p>
+            <button onclick="shareQuote()" class="bg-blue-600 px-8 py-3 rounded-2xl font-bold text-sm">SHARE</button>
         </div>
     </footer>
 
     <script>
-        // XL PRICING: Picture XL ($45), Door XL ($60)
-        const BASE_RATES = { 
-            small: 5, medium: 10, large: 15, 
-            picture: 25, picture_xl: 45, 
-            door: 35, door_xl: 60 
-        };
-        const MULTIPLIERS = { ground: 1.0, second: 1.3 };
-        
-        let selSize = 'small', selHeight = 'ground', selSpec = 'std';
-        let counts = JSON.parse(localStorage.getItem('winStoreV3')) || {
-            small: {ground:0, second:0}, medium: {ground:0, second:0}, large: {ground:0, second:0},
-            picture: {ground:0, second:0}, picture_xl: {ground:0, second:0},
-            door: {ground:0, second:0}, door_xl: {ground:0, second:0}
-        };
+        // UPDATED PRICING MATRIX
+        // Standard Windows
+        const STD_RATES = { small: 5, medium: 10, large: 15, door: 30 };
+        // Picture Frame Windows (Add $10 premium to base)
+        const PIC_RATES = { small: 15, medium: 20, large: 25, door: 45 }; 
+        const MULTI = { ground: 1.0, second: 1.3 };
 
-        function setMode(type, val) {
-            if(type === 'size') {
-                selSize = val;
-                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('btn-active'));
-                document.getElementById(`sz-${val}`).classList.add('btn-active');
-            } else {
-                selHeight = val;
-                document.querySelectorAll('.ht-btn').forEach(b => b.classList.remove('btn-active'));
-                document.getElementById(`ht-${val}`).classList.add('btn-active');
-            }
+        let selSize = 'small', selHeight = 'ground', isPic = false;
+        let counts = JSON.parse(localStorage.getItem('winAI_v4')) || {};
+
+        function setSize(s) {
+            selSize = s;
+            document.querySelectorAll('.sz-btn').forEach(b => b.classList.remove('btn-active'));
+            document.getElementById(`sz-${s}`).classList.add('btn-active');
         }
 
-        function setSpecialty(v) {
-            selSpec = v;
-            document.querySelectorAll('.spec-btn').forEach(b => b.classList.remove('btn-active'));
-            document.getElementById(`spec-${v}`).classList.add('btn-active');
+        function setHeight(h) {
+            selHeight = h;
+            document.querySelectorAll('.ht-btn').forEach(b => b.classList.remove('btn-active'));
+            document.getElementById(`ht-${h}`).classList.add('btn-active');
+        }
+
+        function togglePic() {
+            isPic = !isPic;
+            const btn = document.getElementById('pic-toggle');
+            if(isPic) {
+                btn.classList.add('pic-active');
+                btn.innerText = '🖼️ PICTURE ON';
+            } else {
+                btn.classList.remove('pic-active');
+                btn.innerText = '🖼️ PICTURE FRAME';
+            }
         }
 
         function initGrid() {
             const grid = document.getElementById('countGrid');
             grid.innerHTML = '';
-            for(let s in counts) {
-                if(counts[s].ground > 0 || counts[s].second > 0) {
+            for(let key in counts) {
+                if(counts[key] > 0) {
                     const row = document.createElement('div');
-                    row.className = "flex justify-between items-center bg-slate-50 p-2 rounded-lg border-l-4 " + (s.includes('xl') ? 'border-amber-400' : 'border-slate-300');
-                    row.innerHTML = `<span class="capitalize font-bold text-slate-700">${s.replace('_', ' ')}</span>
-                        <div class="flex gap-2">
-                            <span class="bg-white px-2 py-1 rounded border">G: ${counts[s].ground}</span>
-                            <span class="bg-white px-2 py-1 rounded border">2: ${counts[s].second}</span>
-                        </div>`;
+                    row.className = "flex justify-between items-center bg-slate-50 p-2 rounded border-l-4 " + (key.includes('pic') ? 'border-orange-400' : 'border-blue-400');
+                    row.innerHTML = `<span class="capitalize font-bold">${key.replace('_',' ')}</span> <span class="font-mono">Qty: ${counts[key]}</span>`;
                     grid.appendChild(row);
                 }
             }
@@ -132,11 +124,13 @@
 
         function calculate() {
             let total = 0;
-            for(let s in counts) for(let h in counts[s]) {
-                total += counts[s][h] * (BASE_RATES[s] * MULTIPLIERS[h]);
+            for(let key in counts) {
+                const [size, type, height] = key.split('_');
+                const rate = type === 'pic' ? PIC_RATES[size] : STD_RATES[size];
+                total += counts[key] * (rate * MULTI[height]);
             }
             document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
-            localStorage.setItem('winStoreV3', JSON.stringify(counts));
+            localStorage.setItem('winAI_v4', JSON.stringify(counts));
         }
 
         function placeMarker(e) {
@@ -144,12 +138,12 @@
             const x = ((e.clientX - rect.left) / rect.width) * 100;
             const y = ((e.clientY - rect.top) / rect.height) * 100;
             const marker = document.createElement('div');
-            marker.className = `marker marker-${selHeight} marker-lg`;
+            marker.className = `marker marker-${selHeight} ` + (isPic ? 'marker-pic' : 'marker-std');
             marker.style.left = `${x}%`; marker.style.top = `${y}%`;
             document.getElementById('canvasContainer').appendChild(marker);
             
-            let finalKey = (selSize === 'picture' || selSize === 'door') && selSpec === 'xl' ? `${selSize}_xl` : selSize;
-            counts[finalKey][selHeight]++;
+            const key = `${selSize}_${isPic ? 'pic' : 'std'}_${selHeight}`;
+            counts[key] = (counts[key] || 0) + 1;
             initGrid();
         }
 
@@ -165,10 +159,8 @@
         }
 
         function shareQuote() {
-            const total = document.getElementById('totalPrice').innerText;
-            const text = `Window Estimate: ${total}`;
-            if (navigator.share) navigator.share({ text: text });
-            else alert(text);
+            const text = `Window Cleaning Quote: ${document.getElementById('totalPrice').innerText}`;
+            if (navigator.share) navigator.share({ text: text }); else alert(text);
         }
 
         function resetData() { if(confirm("Reset?")) { localStorage.clear(); location.reload(); } }
