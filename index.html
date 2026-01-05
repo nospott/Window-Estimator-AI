@@ -8,12 +8,9 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; touch-action: manipulation; }
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; }
-        /* Dot Sizes */
         .marker-sm { width: 14px; height: 14px; }
         .marker-lg { width: 28px; height: 28px; }
-        /* Shape for Picture Frames */
         .marker-pic { border-radius: 4px !important; rotate: 45deg; }
-        /* Colors for Levels */
         .marker-ground { background: #22c55e; } 
         .marker-second { background: #3b82f6; } 
         .marker-third { background: #ef4444; }  
@@ -21,23 +18,23 @@
         .pic-active { border-color: #f59e0b !important; background-color: #fffbeb !important; color: #b45309 !important; border-style: solid !important; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-64 text-slate-900">
+<body class="bg-slate-50 min-h-screen pb-72 text-slate-900">
 
     <header class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-50">
         <h1 class="text-xl font-bold italic tracking-tighter text-blue-400">Window Estimator AI</h1>
-        <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded">Reset</button>
+        <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded font-bold">RESET</button>
     </header>
 
     <main class="p-4 max-w-md mx-auto space-y-4">
         <section class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
             <div id="canvasContainer" class="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden mb-4 border-2 border-slate-300 flex items-center justify-center">
                 <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                <p id="placeholderText" class="text-slate-400 text-xs text-center px-6">Upload house photo to start</p>
+                <p id="placeholderText" class="text-slate-400 text-xs text-center px-6 uppercase font-bold tracking-widest">Upload photo to begin</p>
             </div>
 
             <div class="space-y-4">
                 <div>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">1. Select Size & Type</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">1. Size & Type</p>
                     <div class="grid grid-cols-5 gap-1">
                         <button onclick="setSize('small')" id="sz-small" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Small</button>
                         <button onclick="setSize('medium')" id="sz-medium" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Med</button>
@@ -67,25 +64,37 @@
             </div>
 
             <input type="file" accept="image/*" id="uploadInput" class="hidden" onchange="handleFile(this)">
-            <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm mt-4 shadow-xl active:scale-95 transition-transform">📁 Upload Photo</button>
+            <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-sm mt-4 shadow-xl">📁 Upload House Photo</button>
         </section>
 
         <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="font-bold text-slate-800 text-sm italic">Review Quote</h2>
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="font-black text-slate-800 text-sm uppercase tracking-tight">Estimate Price Breakdown</h2>
                 <label class="flex items-center gap-2 text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
                     <input type="checkbox" id="taxToggle" onchange="calculate()"> +8.25% TAX
                 </label>
             </div>
-            <div id="countGrid" class="space-y-1 text-[11px]"></div>
+            
+            <div id="countGrid" class="space-y-2 mb-4"></div>
+
+            <div class="border-t pt-3 space-y-1 text-xs font-bold text-slate-600">
+                <div class="flex justify-between uppercase">
+                    <span>Sub-Total</span>
+                    <span id="subTotalDisplay">$0.00</span>
+                </div>
+                <div class="flex justify-between text-blue-600 uppercase">
+                    <span>Sales Tax (8.25%)</span>
+                    <span id="taxAmountDisplay">$0.00</span>
+                </div>
+            </div>
         </section>
     </main>
 
     <footer class="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white p-6 rounded-3xl shadow-2xl z-50 border border-slate-800">
         <div class="flex justify-between items-center mb-4">
             <div>
-                <p class="text-blue-400 text-4xl font-black" id="totalPrice">$0.00</p>
-                <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest mt-1">Total Estimated Quote</p>
+                <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1">Grand Total Estimate</p>
+                <p class="text-4xl font-black text-blue-400" id="totalPrice">$0.00</p>
             </div>
             <button onclick="shareQuote()" class="bg-blue-600 px-8 py-4 rounded-2xl font-bold text-sm shadow-lg shadow-blue-500/20 active:scale-95 transition-all">SHARE SMS</button>
         </div>
@@ -97,7 +106,7 @@
         const MULTI = { ground: 1.0, second: 1.3, third: 1.6 };
 
         let selSize = 'small', selHeight = 'ground', selDotSize = 'lg', isPic = false;
-        let counts = JSON.parse(localStorage.getItem('winAI_FINAL')) || {};
+        let counts = JSON.parse(localStorage.getItem('winAI_FINAL_V5')) || {};
 
         function setSize(s) {
             selSize = s;
@@ -129,9 +138,20 @@
             grid.innerHTML = '';
             for(let key in counts) {
                 if(counts[key] > 0) {
+                    const parts = key.split('_');
+                    const rate = parts[1] === 'pic' ? PIC_RATES[parts[0]] : STD_RATES[parts[0]];
+                    const pricePer = (rate * MULTI[parts[2]]).toFixed(2);
+                    const lineTotal = (counts[key] * pricePer).toFixed(2);
+
                     const row = document.createElement('div');
-                    row.className = "flex justify-between items-center bg-slate-50 p-2 rounded border-l-4 " + (key.includes('_pic_') ? 'border-amber-400' : 'border-blue-400');
-                    row.innerHTML = `<span class="capitalize font-bold">${key.replace(/_/g,' ')}</span> <span class="font-mono">Qty: ${counts[key]}</span>`;
+                    row.className = "flex justify-between items-center bg-slate-50 p-2 rounded border-l-4 " + (parts[1] === 'pic' ? 'border-amber-400' : 'border-blue-400');
+                    row.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="capitalize font-black text-[10px] text-slate-800">${parts[0]} ${parts[1] === 'pic' ? 'Picture' : ''} (${parts[2]})</span>
+                            <span class="text-[9px] text-slate-500">${counts[key]} x $${pricePer}</span>
+                        </div>
+                        <span class="font-mono font-bold text-slate-800">$${lineTotal}</span>
+                    `;
                     grid.appendChild(row);
                 }
             }
@@ -139,15 +159,25 @@
         }
 
         function calculate() {
-            let total = 0;
+            let subtotal = 0;
             for(let key in counts) {
                 const parts = key.split('_');
                 const rate = parts[1] === 'pic' ? PIC_RATES[parts[0]] : STD_RATES[parts[0]];
-                total += counts[key] * (rate * MULTI[parts[2]]);
+                subtotal += counts[key] * (rate * MULTI[parts[2]]);
             }
-            if(document.getElementById('taxToggle').checked) total *= 1.0825;
+
+            let tax = 0;
+            if(document.getElementById('taxToggle').checked) {
+                tax = subtotal * 0.0825;
+            }
+
+            const total = subtotal + tax;
+
+            document.getElementById('subTotalDisplay').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('taxAmountDisplay').innerText = `$${tax.toFixed(2)}`;
             document.getElementById('totalPrice').innerText = `$${total.toFixed(2)}`;
-            localStorage.setItem('winAI_FINAL', JSON.stringify(counts));
+            
+            localStorage.setItem('winAI_FINAL_V5', JSON.stringify(counts));
         }
 
         function placeMarker(e) {
@@ -178,11 +208,12 @@
 
         function shareQuote() {
             const total = document.getElementById('totalPrice').innerText;
-            const text = `Window Cleaning Quote\nTotal: ${total}`;
-            if (navigator.share) navigator.share({ text: text }); else alert(text);
+            const sub = document.getElementById('subTotalDisplay').innerText;
+            const msg = `Window Cleaning Estimate\nSub-Total: ${sub}\nGrand Total: ${total}`;
+            if (navigator.share) navigator.share({ text: msg }); else alert(msg);
         }
 
-        function resetData() { if(confirm("Clear everything?")) { localStorage.clear(); location.reload(); } }
+        function resetData() { if(confirm("Clear current estimate?")) { localStorage.clear(); location.reload(); } }
         initGrid();
     </script>
 </body>
