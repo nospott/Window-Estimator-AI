@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#2563eb",
-  "description": "Professional window cleaning estimation tool.",
+  "description": "Visual window cleaning estimation tool.",
   "orientation": "portrait",
   "icons": [
     {
