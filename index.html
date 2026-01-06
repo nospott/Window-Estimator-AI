@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --canvas: #020617; }
-        [data-theme="light"] { --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --border: #cbd5e1; --canvas: #e2e8f0; }
+        [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --border: #cbd5e1; --canvas: #f1f5f9; }
 
         body { background-color: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; font-family: sans-serif; transition: background 0.3s; padding-bottom: 70px; }
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10; }
@@ -32,13 +32,30 @@
         .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
         .disabled-floor { opacity: 0.05 !important; pointer-events: none; }
 
+        /* Professional Toast & Modals */
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 12px 24px; border-radius: 50px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 10001; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; margin-top: -100px; pointer-events: none; }
         #toast.show { opacity: 1; margin-top: 0; }
+
+        #confirmModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
+        
+        /* Light Mode Specific Button Override */
+        [data-theme="light"] .minus-btn { background-color: #f1f5f9 !important; color: #0f172a !important; }
     </style>
 </head>
 <body class="min-h-screen">
 
     <div id="toast">Settings Updated</div>
+
+    <div id="confirmModal">
+        <div class="card p-8 rounded-3xl w-full max-w-sm space-y-6 text-center shadow-2xl">
+            <div class="text-red-500 text-3xl">⚠️</div>
+            <p id="confirmText" class="text-xs font-black uppercase leading-relaxed tracking-wide"></p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="handleConfirm(false)" class="card py-4 rounded-2xl font-black uppercase text-[10px] opacity-50">Cancel</button>
+                <button onclick="handleConfirm(true)" class="bg-red-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Clear Job</button>
+            </div>
+        </div>
+    </div>
 
     <div id="page0" class="page page-active">
         <div class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
@@ -81,7 +98,7 @@
                     <div class="card p-3 rounded-2xl flex items-center justify-between">
                         <span class="text-[9px] font-black uppercase opacity-50">Screens</span>
                         <div class="flex items-center gap-3">
-                            <button onclick="adjustAddon('screens', -1)" class="w-7 h-7 bg-blue-100 dark:bg-slate-800 text-blue-600 dark:text-white rounded-lg font-black">-</button>
+                            <button onclick="adjustAddon('screens', -1)" class="minus-btn w-7 h-7 bg-slate-800 rounded-lg font-black">-</button>
                             <span id="screenCountDisplay" class="text-xs font-black text-blue-500">0</span>
                             <button onclick="adjustAddon('screens', 1)" class="w-7 h-7 bg-blue-600 text-white rounded-lg font-black">+</button>
                         </div>
@@ -89,7 +106,7 @@
                     <div class="card p-3 rounded-2xl flex items-center justify-between">
                         <span class="text-[9px] font-black uppercase opacity-50">Lanterns</span>
                         <div class="flex items-center gap-3">
-                            <button onclick="adjustAddon('lanterns', -1)" class="w-7 h-7 bg-amber-100 dark:bg-slate-800 text-amber-600 dark:text-white rounded-lg font-black">-</button>
+                            <button onclick="adjustAddon('lanterns', -1)" class="minus-btn w-7 h-7 bg-slate-800 rounded-lg font-black">-</button>
                             <span id="lanternCountDisplay" class="text-xs font-black text-amber-500">0</span>
                             <button onclick="adjustAddon('lanterns', 1)" class="w-7 h-7 bg-amber-500 text-white rounded-lg font-black">+</button>
                         </div>
@@ -116,7 +133,7 @@
                         <span>EST. TIME:</span><span id="estTime">0 min</span>
                     </div>
                 </div>
-                <button onclick="resetJob()" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
+                <button onclick="askReset()" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
             </div>
 
             <div id="view2" class="view space-y-4">
@@ -135,14 +152,9 @@
             </div>
 
             <div id="view3" class="view space-y-4">
-                <div id="historyList" class="space-y-3">
-                    </div>
-            </div>
-
-            <div id="view4" class="view space-y-4">
                 <div class="card p-6 rounded-3xl space-y-4 shadow-sm">
-                    <button onclick="toggleTheme()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Toggle Theme</button>
-                    <button onclick="exportCSV()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase text-green-500">Export CSV</button>
+                    <button onclick="toggleTheme()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Toggle Dark/Light</button>
+                    <button onclick="exportCSV()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase text-green-500">Export CSV Data</button>
                     <div class="space-y-3" id="priceSettings"></div>
                     <div>
                         <label class="text-[8px] uppercase font-bold opacity-50">Mins/Window</label>
@@ -156,8 +168,7 @@
         <footer class="fixed bottom-0 w-full card border-t flex z-50">
             <button onclick="showView(1)" id="nav1" class="nav-btn active">Estimate</button>
             <button onclick="showView(2)" id="nav2" class="nav-btn">Quote</button>
-            <button onclick="showView(3)" id="nav3" class="nav-btn">History</button>
-            <button onclick="showView(4)" id="nav4" class="nav-btn">Settings</button>
+            <button onclick="showView(3)" id="nav3" class="nav-btn">Settings</button>
         </footer>
     </div>
 
@@ -165,9 +176,9 @@
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
         let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
         let addons = { screens: 0, lanterns: 0 };
-        let history = JSON.parse(localStorage.getItem('winAI_history')) || [];
+        let confirmAction = null;
 
-        let conf = JSON.parse(localStorage.getItem('winAI_v11')) || { 
+        let conf = JSON.parse(localStorage.getItem('winAI_v12')) || { 
             theme:'dark', tax:8.25, timePerWin: 3.5,
             prices:{small:8, medium:12, large:18, door:15, pic:20, screens: 2, lanterns: 5} 
         };
@@ -178,9 +189,25 @@
             setTimeout(() => { toast.classList.remove('show'); }, 2500);
         }
 
+        // CUSTOM CONFIRM LOGIC
+        function askReset() {
+            document.getElementById('confirmText').innerText = "Clear current job? This will delete all active photos and counts.";
+            document.getElementById('confirmModal').style.display = 'flex';
+            confirmAction = () => {
+                markers = []; photos = []; addons = {screens:0, lanterns:0};
+                localStorage.removeItem('winAI_current_job');
+                location.reload();
+            };
+        }
+        function handleConfirm(result) {
+            document.getElementById('confirmModal').style.display = 'none';
+            if(result && confirmAction) confirmAction();
+        }
+
         function checkLicense() {
             const k = document.getElementById('licenseKey').value.toUpperCase();
-            if(VALID_KEYS.includes(k)) { localStorage.setItem('winAI_on', '1'); init(); } else { showToast("Invalid Key"); }
+            if(VALID_KEYS.includes(k)) { localStorage.setItem('winAI_on', '1'); init(); } 
+            else { showToast("Invalid Key"); }
         }
 
         function init() {
@@ -199,60 +226,28 @@
                 document.getElementById('screenCountDisplay').innerText = addons.screens;
                 document.getElementById('lanternCountDisplay').innerText = addons.lanterns;
             }
-            renderPrices(); renderHistory(); calc();
+            renderPrices(); calc();
         }
 
         function persist() { localStorage.setItem('winAI_current_job', JSON.stringify({ markers, addons, photos })); }
 
-        function saveToHistory() {
-            const outPrice = document.getElementById('priceOut').innerText;
-            const inPrice = document.getElementById('priceIn').innerText;
-            const job = {
-                date: new Date().toLocaleString(),
-                out: outPrice,
-                in: inPrice,
-                count: markers.length,
-                screens: addons.screens,
-                lanterns: addons.lanterns
-            };
-            history.unshift(job);
-            if(history.length > 10) history.pop();
-            localStorage.setItem('winAI_history', JSON.stringify(history));
-            renderHistory();
-        }
-
-        function renderHistory() {
-            const list = document.getElementById('historyList');
-            if(history.length === 0) {
-                list.innerHTML = '<div class="text-center py-10 opacity-30 text-[10px] font-bold uppercase italic">No History Found</div>';
-                return;
-            }
-            list.innerHTML = history.map(h => `
-                <div class="card p-4 rounded-2xl space-y-1">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[8px] font-black opacity-40 uppercase">${h.date}</span>
-                        <span class="text-[10px] font-black text-green-500">${h.out} OUT</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-[9px] font-bold opacity-60 uppercase">${h.count} Items | ${h.screens} Screens | ${h.lanterns} Lts</span>
-                        <span class="text-[10px] font-black text-blue-500">${h.in} IN/OUT</span>
-                    </div>
-                </div>
-            `).join('');
-        }
+        function triggerCamera() { document.getElementById('camInput').click(); }
+        function triggerGallery() { document.getElementById('galleryInput').click(); }
 
         function showView(n) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('view'+n).classList.add('view-active');
             document.getElementById('nav'+n).classList.add('active');
-            const titles = ["", "Estimator", "Quote", "Job History", "Settings"];
+            const titles = ["", "Estimator", "Quote Summary", "Settings"];
             document.getElementById('viewTitle').innerText = titles[n];
         }
 
+        // FIXED COUNTER LOGIC
         function adjustAddon(type, val) {
-            addons[type] = Math.max(0, addons[type] + val);
-            document.getElementById(type + 'CountDisplay').innerText = addons[type];
+            addons[type] = Math.max(0, (addons[type] || 0) + val);
+            const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
+            document.getElementById(displayId).innerText = addons[type];
             calc(); persist();
         }
 
@@ -310,23 +305,21 @@
             let html = "";
             for(let t in counts) if(counts[t]>0) html += `<div class="flex justify-between uppercase"><span>${t} (x${counts[t]})</span><span>$${(counts[t]*conf.prices[t]).toFixed(2)}</span></div>`;
             if(addons.screens > 0) html += `<div class="flex justify-between uppercase text-blue-500"><span>Screens (x${addons.screens})</span><span>$${(addons.screens*conf.prices.screens).toFixed(2)}</span></div>`;
-            if(addons.lanterns > 0) html += `<div class="flex justify-between uppercase text-amber-400"><span>Lanterns (x${addons.lanterns})</span><span>$${(addons.lanterns*conf.prices.lanterns).toFixed(2)}</span></div>`;
+            if(addons.lanterns > 0) html += `<div class="flex justify-between uppercase text-amber-500"><span>Lanterns (x${addons.lanterns})</span><span>$${(addons.lanterns*conf.prices.lanterns).toFixed(2)}</span></div>`;
             document.getElementById('liveBreakdown').innerHTML = html;
         }
 
         function shareSMS() {
-            saveToHistory();
             const b = `Window Quote: Outside ($${document.getElementById('priceOut').innerText}) | In/Out ($${document.getElementById('priceIn').innerText}). Reply to book!`;
             window.location.href = `sms:?body=${encodeURIComponent(b)}`;
         }
 
         function shareEmail() {
-            saveToHistory();
             let d = `OFFICE RECORD\n\nIn/Out: ${document.getElementById('priceIn').innerText}\nOutside: ${document.getElementById('priceOut').innerText}\nItems: ${markers.length}`;
             window.location.href = `mailto:?subject=Job Detail&body=${encodeURIComponent(d)}`;
         }
 
-        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v11', JSON.stringify(conf)); showToast("Theme Updated"); }
+        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v12', JSON.stringify(conf)); showToast("Theme Updated"); }
 
         function renderPrices() {
             let h = "";
@@ -337,16 +330,12 @@
         function savePrices() {
             for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
             conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v11', JSON.stringify(conf));
+            localStorage.setItem('winAI_v12', JSON.stringify(conf));
             showToast("Settings Saved");
             calc();
         }
 
-        function triggerCamera() { document.getElementById('camInput').click(); }
-        function triggerGallery() { document.getElementById('galleryInput').click(); }
-        function undo() { markers.pop(); calc(); persist(); }
-        function resetJob() { if(confirm("Clear current job?")) { markers = []; photos = []; addons = {screens:0, lanterns:0}; localStorage.removeItem('winAI_current_job'); location.reload(); } }
-        function exportCSV() { showToast("CSV Exported"); }
+        function exportCSV() { showToast("CSV Data Exported"); }
         function logout() { localStorage.removeItem('winAI_on'); location.reload(); }
         if(localStorage.getItem('winAI_on') === '1') init();
     </script>
