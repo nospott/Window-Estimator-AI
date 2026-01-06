@@ -32,14 +32,16 @@
         .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
         .disabled-floor { opacity: 0.05 !important; pointer-events: none; }
 
-        /* Professional Toast & Modals */
+        /* Custom UI Components */
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 12px 24px; border-radius: 50px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 10001; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; margin-top: -100px; pointer-events: none; }
         #toast.show { opacity: 1; margin-top: 0; }
 
         #confirmModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
         
-        /* Light Mode Specific Button Override */
-        [data-theme="light"] .minus-btn { background-color: #f1f5f9 !important; color: #0f172a !important; }
+        /* Light Mode UI Fixes */
+        [data-theme="light"] .minus-btn { background-color: #e2e8f0 !important; color: #0f172a !important; }
+        [data-theme="light"] .card { color: #0f172a !important; }
+        [data-theme="light"] .opacity-50 { opacity: 0.6 !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -49,7 +51,7 @@
     <div id="confirmModal">
         <div class="card p-8 rounded-3xl w-full max-w-sm space-y-6 text-center shadow-2xl">
             <div class="text-red-500 text-3xl">⚠️</div>
-            <p id="confirmText" class="text-xs font-black uppercase leading-relaxed tracking-wide"></p>
+            <p id="confirmText" class="text-xs font-black uppercase leading-relaxed tracking-wide">Clear current job? This will delete all active photos and counts.</p>
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="handleConfirm(false)" class="card py-4 rounded-2xl font-black uppercase text-[10px] opacity-50">Cancel</button>
                 <button onclick="handleConfirm(true)" class="bg-red-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Clear Job</button>
@@ -98,17 +100,17 @@
                     <div class="card p-3 rounded-2xl flex items-center justify-between">
                         <span class="text-[9px] font-black uppercase opacity-50">Screens</span>
                         <div class="flex items-center gap-3">
-                            <button onclick="adjustAddon('screens', -1)" class="minus-btn w-7 h-7 bg-slate-800 rounded-lg font-black">-</button>
+                            <button onclick="adjustAddon('screens', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
                             <span id="screenCountDisplay" class="text-xs font-black text-blue-500">0</span>
-                            <button onclick="adjustAddon('screens', 1)" class="w-7 h-7 bg-blue-600 text-white rounded-lg font-black">+</button>
+                            <button onclick="adjustAddon('screens', 1)" class="w-8 h-8 bg-blue-600 text-white rounded-lg font-black">+</button>
                         </div>
                     </div>
                     <div class="card p-3 rounded-2xl flex items-center justify-between">
                         <span class="text-[9px] font-black uppercase opacity-50">Lanterns</span>
                         <div class="flex items-center gap-3">
-                            <button onclick="adjustAddon('lanterns', -1)" class="minus-btn w-7 h-7 bg-slate-800 rounded-lg font-black">-</button>
+                            <button onclick="adjustAddon('lanterns', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
                             <span id="lanternCountDisplay" class="text-xs font-black text-amber-500">0</span>
-                            <button onclick="adjustAddon('lanterns', 1)" class="w-7 h-7 bg-amber-500 text-white rounded-lg font-black">+</button>
+                            <button onclick="adjustAddon('lanterns', 1)" class="w-8 h-8 bg-amber-500 text-white rounded-lg font-black">+</button>
                         </div>
                     </div>
                 </div>
@@ -178,7 +180,7 @@
         let addons = { screens: 0, lanterns: 0 };
         let confirmAction = null;
 
-        let conf = JSON.parse(localStorage.getItem('winAI_v12')) || { 
+        let conf = JSON.parse(localStorage.getItem('winAI_v13')) || { 
             theme:'dark', tax:8.25, timePerWin: 3.5,
             prices:{small:8, medium:12, large:18, door:15, pic:20, screens: 2, lanterns: 5} 
         };
@@ -189,9 +191,7 @@
             setTimeout(() => { toast.classList.remove('show'); }, 2500);
         }
 
-        // CUSTOM CONFIRM LOGIC
         function askReset() {
-            document.getElementById('confirmText').innerText = "Clear current job? This will delete all active photos and counts.";
             document.getElementById('confirmModal').style.display = 'flex';
             confirmAction = () => {
                 markers = []; photos = []; addons = {screens:0, lanterns:0};
@@ -239,12 +239,12 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('view'+n).classList.add('view-active');
             document.getElementById('nav'+n).classList.add('active');
-            const titles = ["", "Estimator", "Quote Summary", "Settings"];
+            const titles = ["", "Estimator", "Final Quote", "Settings"];
             document.getElementById('viewTitle').innerText = titles[n];
         }
 
-        // FIXED COUNTER LOGIC
         function adjustAddon(type, val) {
+            if(!addons) addons = { screens: 0, lanterns: 0 };
             addons[type] = Math.max(0, (addons[type] || 0) + val);
             const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
             document.getElementById(displayId).innerText = addons[type];
@@ -293,9 +293,9 @@
                     d.style.left = m.x+'%'; d.style.top = m.y+'%';
                     document.getElementById('canvasContainer').appendChild(d);
                 }
-                sub += conf.prices[m.type] * m.lvl; counts[m.type]++;
+                sub += (conf.prices[m.type] || 0) * m.lvl; counts[m.type]++;
             });
-            const addonSub = (addons.screens * conf.prices.screens) + (addons.lanterns * conf.prices.lanterns);
+            const addonSub = (addons.screens * (conf.prices.screens || 0)) + (addons.lanterns * (conf.prices.lanterns || 0));
             const outTotal = (sub + addonSub) * (1 + conf.tax/100);
             const inTotal = outTotal * 1.8;
             const totalTime = (markers.length * conf.timePerWin) + (addons.screens * 1.5) + (addons.lanterns * 3);
@@ -305,7 +305,7 @@
             let html = "";
             for(let t in counts) if(counts[t]>0) html += `<div class="flex justify-between uppercase"><span>${t} (x${counts[t]})</span><span>$${(counts[t]*conf.prices[t]).toFixed(2)}</span></div>`;
             if(addons.screens > 0) html += `<div class="flex justify-between uppercase text-blue-500"><span>Screens (x${addons.screens})</span><span>$${(addons.screens*conf.prices.screens).toFixed(2)}</span></div>`;
-            if(addons.lanterns > 0) html += `<div class="flex justify-between uppercase text-amber-500"><span>Lanterns (x${addons.lanterns})</span><span>$${(addons.lanterns*conf.prices.lanterns).toFixed(2)}</span></div>`;
+            if(addons.lanterns > 0) html += `<div class="flex justify-between uppercase text-amber-400"><span>Lanterns (x${addons.lanterns})</span><span>$${(addons.lanterns*conf.prices.lanterns).toFixed(2)}</span></div>`;
             document.getElementById('liveBreakdown').innerHTML = html;
         }
 
@@ -319,7 +319,7 @@
             window.location.href = `mailto:?subject=Job Detail&body=${encodeURIComponent(d)}`;
         }
 
-        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v12', JSON.stringify(conf)); showToast("Theme Updated"); }
+        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v13', JSON.stringify(conf)); showToast("Theme Updated"); }
 
         function renderPrices() {
             let h = "";
@@ -330,14 +330,19 @@
         function savePrices() {
             for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
             conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v12', JSON.stringify(conf));
+            localStorage.setItem('winAI_v13', JSON.stringify(conf));
             showToast("Settings Saved");
             calc();
         }
 
-        function exportCSV() { showToast("CSV Data Exported"); }
+        function undo() { markers.pop(); calc(); persist(); }
         function logout() { localStorage.removeItem('winAI_on'); location.reload(); }
         if(localStorage.getItem('winAI_on') === '1') init();
+
+        // PWA REGISTRATION
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registered")).catch((err) => console.log("SW Failed", err));
+        }
     </script>
 </body>
 </html>
