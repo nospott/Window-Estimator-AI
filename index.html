@@ -14,7 +14,7 @@
         :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --canvas: #020617; }
         [data-theme="light"] { --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --border: #cbd5e1; --canvas: #e2e8f0; }
 
-        body { background-color: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; font-family: sans-serif; transition: background 0.3s; padding-bottom: 60px; }
+        body { background-color: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; font-family: sans-serif; transition: background 0.3s; padding-bottom: 70px; }
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10; }
         .marker-small { width: 12px; height: 12px; background: #22c55e; }
         .marker-medium { width: 18px; height: 18px; background: #3b82f6; }
@@ -25,11 +25,10 @@
         .card { background-color: var(--card); border: 1px solid var(--border); color: var(--text); }
         .canvas-area { background-color: var(--canvas); border: 2px solid var(--border); }
         
-        /* Updated button colors for Light Mode visibility */
         .btn-active { background-color: #2563eb !important; color: white !important; opacity: 1 !important; }
         .page, .view { display: none; }
         .page-active, .view-active { display: block; }
-        .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; }
+        .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b; }
         .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
         .disabled-floor { opacity: 0.05 !important; pointer-events: none; }
 
@@ -58,7 +57,8 @@
             <button onclick="logout()" class="text-[9px] font-bold opacity-50 uppercase">Logout</button>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 pb-28">
+        <div class="flex-1 overflow-y-auto p-4">
+            
             <div id="view1" class="view view-active space-y-4">
                 <div class="flex gap-2 overflow-x-auto pb-2" id="galleryThumbs"></div>
                 <div id="canvasContainer" class="relative w-full aspect-video rounded-3xl overflow-hidden shadow-xl canvas-area">
@@ -116,6 +116,7 @@
                         <span>EST. TIME:</span><span id="estTime">0 min</span>
                     </div>
                 </div>
+                <button onclick="resetJob()" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
             </div>
 
             <div id="view2" class="view space-y-4">
@@ -134,9 +135,14 @@
             </div>
 
             <div id="view3" class="view space-y-4">
+                <div id="historyList" class="space-y-3">
+                    </div>
+            </div>
+
+            <div id="view4" class="view space-y-4">
                 <div class="card p-6 rounded-3xl space-y-4 shadow-sm">
-                    <button onclick="toggleTheme()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Toggle Dark/Light</button>
-                    <button onclick="exportCSV()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase text-green-500">Export Job Data (CSV)</button>
+                    <button onclick="toggleTheme()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Toggle Theme</button>
+                    <button onclick="exportCSV()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase text-green-500">Export CSV</button>
                     <div class="space-y-3" id="priceSettings"></div>
                     <div>
                         <label class="text-[8px] uppercase font-bold opacity-50">Mins/Window</label>
@@ -148,9 +154,10 @@
         </div>
 
         <footer class="fixed bottom-0 w-full card border-t flex z-50">
-            <button onclick="showView(1)" id="nav1" class="nav-btn active">Estimator</button>
+            <button onclick="showView(1)" id="nav1" class="nav-btn active">Estimate</button>
             <button onclick="showView(2)" id="nav2" class="nav-btn">Quote</button>
-            <button onclick="showView(3)" id="nav3" class="nav-btn">Settings</button>
+            <button onclick="showView(3)" id="nav3" class="nav-btn">History</button>
+            <button onclick="showView(4)" id="nav4" class="nav-btn">Settings</button>
         </footer>
     </div>
 
@@ -158,8 +165,9 @@
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
         let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
         let addons = { screens: 0, lanterns: 0 };
+        let history = JSON.parse(localStorage.getItem('winAI_history')) || [];
 
-        let conf = JSON.parse(localStorage.getItem('winAI_v10')) || { 
+        let conf = JSON.parse(localStorage.getItem('winAI_v11')) || { 
             theme:'dark', tax:8.25, timePerWin: 3.5,
             prices:{small:8, medium:12, large:18, door:15, pic:20, screens: 2, lanterns: 5} 
         };
@@ -191,26 +199,60 @@
                 document.getElementById('screenCountDisplay').innerText = addons.screens;
                 document.getElementById('lanternCountDisplay').innerText = addons.lanterns;
             }
-            renderPrices(); calc();
+            renderPrices(); renderHistory(); calc();
         }
 
         function persist() { localStorage.setItem('winAI_current_job', JSON.stringify({ markers, addons, photos })); }
 
-        function triggerCamera() { document.getElementById('camInput').click(); }
-        function triggerGallery() { document.getElementById('galleryInput').click(); }
+        function saveToHistory() {
+            const outPrice = document.getElementById('priceOut').innerText;
+            const inPrice = document.getElementById('priceIn').innerText;
+            const job = {
+                date: new Date().toLocaleString(),
+                out: outPrice,
+                in: inPrice,
+                count: markers.length,
+                screens: addons.screens,
+                lanterns: addons.lanterns
+            };
+            history.unshift(job);
+            if(history.length > 10) history.pop();
+            localStorage.setItem('winAI_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if(history.length === 0) {
+                list.innerHTML = '<div class="text-center py-10 opacity-30 text-[10px] font-bold uppercase italic">No History Found</div>';
+                return;
+            }
+            list.innerHTML = history.map(h => `
+                <div class="card p-4 rounded-2xl space-y-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[8px] font-black opacity-40 uppercase">${h.date}</span>
+                        <span class="text-[10px] font-black text-green-500">${h.out} OUT</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-bold opacity-60 uppercase">${h.count} Items | ${h.screens} Screens | ${h.lanterns} Lts</span>
+                        <span class="text-[10px] font-black text-blue-500">${h.in} IN/OUT</span>
+                    </div>
+                </div>
+            `).join('');
+        }
 
         function showView(n) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('view'+n).classList.add('view-active');
             document.getElementById('nav'+n).classList.add('active');
-            document.getElementById('viewTitle').innerText = ["", "Estimator", "Final Quote", "Settings"][n];
+            const titles = ["", "Estimator", "Quote", "Job History", "Settings"];
+            document.getElementById('viewTitle').innerText = titles[n];
         }
 
         function adjustAddon(type, val) {
             addons[type] = Math.max(0, addons[type] + val);
-            const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
-            document.getElementById(displayId).innerText = addons[type];
+            document.getElementById(type + 'CountDisplay').innerText = addons[type];
             calc(); persist();
         }
 
@@ -273,16 +315,18 @@
         }
 
         function shareSMS() {
+            saveToHistory();
             const b = `Window Quote: Outside ($${document.getElementById('priceOut').innerText}) | In/Out ($${document.getElementById('priceIn').innerText}). Reply to book!`;
             window.location.href = `sms:?body=${encodeURIComponent(b)}`;
         }
 
         function shareEmail() {
+            saveToHistory();
             let d = `OFFICE RECORD\n\nIn/Out: ${document.getElementById('priceIn').innerText}\nOutside: ${document.getElementById('priceOut').innerText}\nItems: ${markers.length}`;
             window.location.href = `mailto:?subject=Job Detail&body=${encodeURIComponent(d)}`;
         }
 
-        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v10', JSON.stringify(conf)); showToast("Theme Updated"); }
+        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v11', JSON.stringify(conf)); showToast("Theme Updated"); }
 
         function renderPrices() {
             let h = "";
@@ -293,12 +337,15 @@
         function savePrices() {
             for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
             conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v10', JSON.stringify(conf));
+            localStorage.setItem('winAI_v11', JSON.stringify(conf));
             showToast("Settings Saved");
             calc();
         }
 
+        function triggerCamera() { document.getElementById('camInput').click(); }
+        function triggerGallery() { document.getElementById('galleryInput').click(); }
         function undo() { markers.pop(); calc(); persist(); }
+        function resetJob() { if(confirm("Clear current job?")) { markers = []; photos = []; addons = {screens:0, lanterns:0}; localStorage.removeItem('winAI_current_job'); location.reload(); } }
         function exportCSV() { showToast("CSV Exported"); }
         function logout() { localStorage.removeItem('winAI_on'); location.reload(); }
         if(localStorage.getItem('winAI_on') === '1') init();
