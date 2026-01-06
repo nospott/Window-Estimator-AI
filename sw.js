@@ -1,38 +1,37 @@
-const CACHE_NAME = 'window-estimator-v2.5';
+const CACHE_NAME = 'window-estimator-v3.3';
 const ASSETS = [
-  'index.html',
-  'manifest.json',
-  'window-estimator-ai-logo_2.png'
+  './',
+  './index.html',
+  './manifest.json',
+  './window-estimator-ai-logo_2.png'
 ];
 
-self.addEventListener('install', (e) => {
-  console.log('Service Worker Installed');
+// Install the service worker and cache assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Caching app shell');
+      return cache.addAll(ASSETS);
+    })
+  );
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(fetch(e.request));
-});
-
-// Activate and Clean Old Caches
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
+// Activate the worker and remove old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
     })
   );
 });
 
-// Fetch Assets from Cache
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
+// Fetch data from cache first, then network
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
     })
   );
 });
