@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Window Estimator AI</title>
+    
     <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="window-estimator-ai-logo_2.png">
+    <link rel="icon" type="image/png" href="window-estimator-ai-logo_2.png">
+    <meta name="theme-color" content="#0f172a">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; touch-action: manipulation; }
@@ -13,9 +16,9 @@
         .marker-sm { width: 14px; height: 14px; }
         .marker-lg { width: 26px; height: 26px; }
         .marker-pic { border-radius: 4px !important; rotate: 45deg; }
-        .marker-ground { background: #22c55e; } 
-        .marker-second { background: #3b82f6; } 
-        .marker-third { background: #ef4444; }  
+        .marker-ground { background: #22c55e; }
+        .marker-second { background: #3b82f6; }
+        .marker-third { background: #ef4444; }
         .btn-active { border-color: #2563eb !important; background-color: #eff6ff !important; color: #1e40af !important; opacity: 1 !important; }
         .pic-active { border-color: #f59e0b !important; background-color: #fffbeb !important; color: #b45309 !important; border-style: solid !important; }
         .btn-disabled { opacity: 0.2; pointer-events: none; }
@@ -26,16 +29,18 @@
 <body class="bg-slate-50 min-h-screen text-slate-900 font-sans">
 
     <div id="page0" class="page page-active">
-        <div class="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-900 text-white">
-            <h1 class="text-3xl font-black text-blue-400 mb-2 italic text-center uppercase tracking-tighter">Window Estimator AI</h1>
-            <p class="text-slate-400 text-center mb-8 text-xs font-bold uppercase tracking-widest">Subscription Required</p>
-            
-            <div class="w-full max-w-xs space-y-4 text-center">
-                <input type="text" id="licenseKey" placeholder="ENTER UNIQUE KEY" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 text-center font-bold tracking-widest uppercase text-blue-400">
+        <div class="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-900 text-white text-center">
+            <img src="window-estimator-ai-logo_2.png" alt="Logo" class="w-24 h-24 mb-6 rounded-xl shadow-2xl">
+            <h1 class="text-3xl font-black text-blue-400 mb-2 italic uppercase tracking-tighter">Window Estimator AI</h1>
+            <p class="text-slate-400 mb-8 text-xs font-bold uppercase tracking-widest">Subscription Required</p>
+
+            <div class="w-full max-w-xs space-y-4">
+                <input type="text" id="licenseKey" placeholder="ENTER UNIQUE KEY" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 text-center font-bold tracking-widest uppercase text-blue-400 focus:outline-none focus:border-blue-500">
                 <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Activate App</button>
-                <div class="pt-4 border-t border-slate-800">
-                    <p class="text-[10px] text-slate-500 mb-2 italic">Need a license key? Contact support below.</p>
-                    <a href="https://your-payment-link.com" class="text-blue-400 font-bold text-sm underline uppercase tracking-tighter">Get Individual Key</a>
+                
+                <div class="pt-6 border-t border-slate-800">
+                    <p class="text-[10px] text-slate-500 mb-2 italic">No key? Start your 7-day free trial below.</p>
+                    <a href="https://buy.stripe.com/cNiaEZ2Mu7o1etzczh5os00" class="inline-block bg-slate-800 px-6 py-2 rounded-full text-blue-400 font-bold text-xs uppercase tracking-tighter border border-slate-700">Get Individual Key</a>
                 </div>
             </div>
         </div>
@@ -53,236 +58,49 @@
                     <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
                     <p id="placeholderText" class="text-slate-400 text-[10px] font-bold uppercase text-center">Upload Photo To Begin</p>
                 </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Type</p>
-                        <div class="grid grid-cols-5 gap-1">
-                            <button onclick="setSize('small')" id="sz-small" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent btn-active">Small</button>
-                            <button onclick="setSize('medium')" id="sz-medium" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Med</button>
-                            <button onclick="setSize('large')" id="sz-large" class="sz-btn py-3 rounded bg-slate-100 text-[10px] font-bold border-2 border-transparent">Lrg</button>
-                            <button onclick="setSize('door')" id="sz-door" class="sz-btn py-3 rounded bg-blue-100 text-blue-700 text-[10px] font-bold border-2 border-transparent">Door</button>
-                            <button onclick="togglePic()" id="pic-toggle" class="py-3 rounded border-2 border-dashed border-slate-300 text-[10px] font-bold text-slate-500">🖼️ PIC</button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Floor Level</p>
-                            <div class="flex gap-1">
-                                <button onclick="setHeight('ground')" id="ht-ground" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Gnd</button>
-                                <button onclick="setHeight('second')" id="ht-second" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">2nd</button>
-                                <button onclick="setHeight('third')" id="ht-third" class="ht-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">3rd</button>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Dot Setting</p>
-                            <div class="flex gap-1">
-                                <button onclick="setDotSize('sm')" id="dot-sm" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent">Small</button>
-                                <button onclick="setDotSize('lg')" id="dot-lg" class="dot-btn flex-1 py-2 rounded bg-slate-100 text-[9px] font-bold border-2 border-transparent btn-active">Large</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <input type="file" accept="image/*" id="uploadInput" class="hidden" onchange="handleFile(this)">
-                <button onclick="document.getElementById('uploadInput').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-xs mt-4 uppercase">📁 Upload Photo</button>
-            </section>
-
-            <section class="bg-blue-600 text-white p-5 rounded-2xl shadow-lg flex justify-between items-center">
-                <div><p class="text-3xl font-black" id="p1Price">$0.00</p></div>
-                <button onclick="goToPage(2)" class="bg-white text-blue-600 px-6 py-3 rounded-xl font-black text-sm uppercase">Details ➜</button>
-            </section>
-        </main>
-    </div>
-
-    <div id="page2" class="page pb-10">
-        <header class="bg-slate-900 text-white p-5 flex items-center sticky top-0 z-50">
-            <button onclick="goToPage(1)" class="mr-4 text-blue-400 font-bold uppercase text-xs">⇠ Back</button>
-            <h1 class="text-xl font-bold uppercase italic text-blue-400">2. Final Quote</h1>
-        </header>
-
-        <main class="p-4 max-w-md mx-auto space-y-4">
-            <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-                <input type="text" id="bizName" placeholder="Business Name" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
-                <input type="text" id="custName" placeholder="Client Name" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
-                <input type="text" id="custAddr" placeholder="Job Address" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200">
-            </section>
-
-            <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                <h2 class="font-black text-[10px] uppercase text-slate-400 tracking-widest">Add-Ons</h2>
-                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                    <span class="text-sm font-bold">Screens ($2/ea)</span>
-                    <div class="flex items-center gap-4">
-                        <button onclick="changeAddon('screen', -1)" class="w-8 h-8 bg-slate-200 rounded-full font-bold">-</button>
-                        <span id="screenCount" class="font-black">0</span>
-                        <button onclick="changeAddon('screen', 1)" class="w-8 h-8 bg-slate-200 rounded-full font-bold">+</button>
-                    </div>
-                </div>
-                <label class="flex justify-between items-center p-3 bg-blue-50 rounded-xl border border-blue-100">
-                    <span class="text-[10px] font-bold text-blue-700 uppercase">Apply Tax (8.25%)</span>
-                    <input type="checkbox" id="taxToggle" onchange="calculate()" class="w-5 h-5 rounded border-blue-300">
-                </label>
-            </section>
-
-            <section class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl space-y-4">
-                <h2 class="font-black text-[10px] uppercase text-slate-500 tracking-widest border-b border-slate-800 pb-2 italic">Estimate Price Breakdown</h2>
-                <div id="finalList" class="space-y-1 text-[10px] font-mono border-b border-slate-800 pb-4"></div>
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-[8px] text-slate-500 uppercase font-bold mb-1">Total Quote</p>
-                        <p class="text-4xl font-black text-blue-400" id="p2Price">$0.00</p>
-                    </div>
-                    <button onclick="shareQuote()" class="bg-blue-600 px-8 py-4 rounded-2xl font-black text-sm uppercase">Share Quote</button>
-                </div>
+                
+                <input type="file" id="photoUpload" accept="image/*" class="hidden" onchange="handleUpload(event)">
+                <button onclick="document.getElementById('photoUpload').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm mb-4">Capture Property Photo</button>
             </section>
         </main>
     </div>
 
     <script>
-        // --- SECURITY: UNIQUE LICENSE KEY LIST ---
-        // Change these words to give different people access.
-        const VALID_KEYS = ["ADMIN100", "BETA_USER_1", "PRO_CLEAN_26", "GUEST_ACCESS"];
+        const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
 
         function checkLicense() {
-            const input = document.getElementById('licenseKey').value.toUpperCase();
-            if(VALID_KEYS.includes(input)) {
-                localStorage.setItem('winAI_active_key', input);
-                goToPage(1);
+            const key = document.getElementById('licenseKey').value.trim().toUpperCase();
+            if (VALID_KEYS.includes(key)) {
+                localStorage.setItem('windowAI_active', 'true');
+                showApp();
             } else {
-                alert("Invalid Key. Please contact support for access.");
+                alert("Invalid License Key. Please purchase a key to continue.");
             }
         }
 
-        window.onload = () => {
-            const savedKey = localStorage.getItem('winAI_active_key');
-            if(VALID_KEYS.includes(savedKey)) {
-                goToPage(1);
-            }
-        };
-
-        // --- PRICING LOGIC ---
-        const STD_RATES = { small: 5, medium: 10, large: 15, door: 30 };
-        const PIC_RATES = { small: 15, medium: 20, large: 25, door: 45 }; 
-        const MULTI = { ground: 1.0, second: 1.3, third: 1.6 };
-
-        let selSize = 'small', selHeight = 'ground', selDotSize = 'lg', isPic = false;
-        let counts = {};
-        let addons = { screen: 0 };
-
-        function goToPage(num) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('page-active'));
-            document.getElementById(`page${num}`).classList.add('page-active');
-            window.scrollTo(0,0);
-            if(num === 2) initFinalList();
+        function showApp() {
+            document.getElementById('page0').classList.remove('page-active');
+            document.getElementById('page1').classList.add('page-active');
         }
 
-        function setSize(s) {
-            selSize = s;
-            document.querySelectorAll('.sz-btn').forEach(b => b.classList.remove('btn-active'));
-            document.getElementById(`sz-${s}`).classList.add('btn-active');
-            const htBtns = ['ht-second', 'ht-third'];
-            if(s === 'door') { setHeight('ground'); htBtns.forEach(id => document.getElementById(id).classList.add('btn-disabled')); }
-            else { htBtns.forEach(id => document.getElementById(id).classList.remove('btn-disabled')); }
-        }
-
-        function setHeight(h) {
-            selHeight = h;
-            document.querySelectorAll('.ht-btn').forEach(b => b.classList.remove('btn-active'));
-            document.getElementById(`ht-${h}`).classList.add('btn-active');
-        }
-
-        function setDotSize(v) {
-            selDotSize = v;
-            document.querySelectorAll('.dot-btn').forEach(b => b.classList.remove('btn-active'));
-            document.getElementById(`dot-${v}`).classList.add('btn-active');
-        }
-
-        function togglePic() {
-            isPic = !isPic;
-            const btn = document.getElementById('pic-toggle');
-            btn.classList.toggle('pic-active', isPic);
-            btn.innerText = isPic ? '🖼️ PIC ON' : '🖼️ PIC';
-        }
-
-        function changeAddon(type, amt) {
-            addons[type] = Math.max(0, addons[type] + amt);
-            document.getElementById(`${type}Count`).innerText = addons[type];
-            calculate();
-            if(document.getElementById('page2').classList.contains('page-active')) initFinalList();
-        }
-
-        function calculate() {
-            let subtotal = 0;
-            for(let key in counts) {
-                const parts = key.split('_');
-                const rate = parts[1] === 'pic' ? PIC_RATES[parts[0]] : STD_RATES[parts[0]];
-                subtotal += counts[key] * (rate * MULTI[parts[2]]);
-            }
-            subtotal += (addons.screen * 2);
-            let tax = 0;
-            if(document.getElementById('taxToggle').checked) tax = subtotal * 0.0825;
-            let final = subtotal + tax;
-            document.getElementById('p1Price').innerText = `$${final.toFixed(2)}`;
-            document.getElementById('p2Price').innerText = `$${final.toFixed(2)}`;
-        }
-
-        function placeMarker(e) {
-            const rect = e.target.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
-            const marker = document.createElement('div');
-            marker.className = `marker marker-${selHeight} marker-${selDotSize} ` + (isPic ? 'marker-pic' : '');
-            marker.style.left = `${x}%`; marker.style.top = `${y}%`;
-            document.getElementById('canvasContainer').appendChild(marker);
-            const key = `${selSize}_${isPic ? 'pic' : 'std'}_${selHeight}`;
-            counts[key] = (counts[key] || 0) + 1;
-            calculate();
-        }
-
-        function initFinalList() {
-            const list = document.getElementById('finalList');
-            list.innerHTML = '';
-            for(let key in counts) {
-                if(counts[key] > 0) {
-                    const parts = key.split('_');
-                    const rate = parts[1] === 'pic' ? PIC_RATES[parts[0]] : STD_RATES[parts[0]];
-                    const price = (rate * MULTI[parts[2]]).toFixed(2);
-                    const div = document.createElement('div');
-                    div.className = "flex justify-between border-b border-slate-800 pb-1";
-                    div.innerHTML = `<span>${key.replace(/_/g,' ').toUpperCase()} (x${counts[key]})</span><span>$${(counts[key] * price).toFixed(2)}</span>`;
-                    list.appendChild(div);
-                }
-            }
-            if(addons.screen > 0) {
-                const div = document.createElement('div');
-                div.className = "flex justify-between text-blue-400";
-                div.innerHTML = `<span>SCREENS (x${addons.screen})</span><span>$${(addons.screen * 2).toFixed(2)}</span>`;
-                list.appendChild(div);
+        function handleUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = document.getElementById('mainPhoto');
+                    img.src = event.target.result;
+                    img.classList.remove('hidden');
+                    document.getElementById('placeholderText').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
             }
         }
 
-        function handleFile(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = document.getElementById('mainPhoto');
-                img.src = e.target.result;
-                img.classList.remove('hidden');
-                document.getElementById('placeholderText').classList.add('hidden');
-                document.querySelectorAll('.marker').forEach(m => m.remove());
-                counts = {}; calculate();
-            };
-            reader.readAsDataURL(input.files[0]);
+        // Auto-login if already activated
+        if (localStorage.getItem('windowAI_active') === 'true') {
+            showApp();
         }
-
-        function shareQuote() {
-            const biz = document.getElementById('bizName').value || "Company";
-            const name = document.getElementById('custName').value || "Client";
-            const total = document.getElementById('p2Price').innerText;
-            const msg = `ESTIMATE FROM: ${biz}\nFOR: ${name}\nTOTAL: ${total}\n\nThank you!`;
-            if (navigator.share) navigator.share({ text: msg }); else alert(msg);
-        }
-
-        function resetData() { if(confirm("Start new estimate?")) location.reload(); }
     </script>
 </body>
 </html>
