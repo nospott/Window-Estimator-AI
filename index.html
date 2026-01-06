@@ -30,43 +30,40 @@
         .page-active, .view-active { display: block; }
         .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b; }
         .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
-        .disabled-floor { opacity: 0.05 !important; pointer-events: none; }
 
-        /* Custom UI Components */
+        /* Professional Toast & Custom Modals */
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 12px 24px; border-radius: 50px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 10001; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; margin-top: -100px; pointer-events: none; }
         #toast.show { opacity: 1; margin-top: 0; }
 
-        #confirmModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
+        #updateModal, #customConfirm { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
         
         /* Light Mode UI Fixes */
         [data-theme="light"] .minus-btn { background-color: #e2e8f0 !important; color: #0f172a !important; }
         [data-theme="light"] .card { color: #0f172a !important; }
-        [data-theme="light"] .opacity-50 { opacity: 0.6 !important; }
     </style>
 </head>
 <body class="min-h-screen">
 
     <div id="toast">Settings Updated</div>
 
-    <div id="confirmModal">
-        <div class="card p-8 rounded-3xl w-full max-w-sm space-y-6 text-center shadow-2xl">
+    <div id="customConfirm">
+        <div class="card p-8 rounded-3xl w-full max-w-xs space-y-6 text-center shadow-2xl">
             <div class="text-red-500 text-3xl">⚠️</div>
-            <p id="confirmText" class="text-xs font-black uppercase leading-relaxed tracking-wide">Clear current job? This will delete all active photos and counts.</p>
+            <h2 class="text-xs font-black uppercase tracking-widest">Clear Current Job?</h2>
+            <p class="text-[10px] opacity-60 font-bold uppercase">This will delete all active photos and counts for this job.</p>
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="handleConfirm(false)" class="card py-4 rounded-2xl font-black uppercase text-[10px] opacity-50">Cancel</button>
-                <button onclick="handleConfirm(true)" class="bg-red-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Clear Job</button>
+                <button onclick="closeConfirm(false)" class="card py-4 rounded-xl font-black uppercase text-[10px] opacity-50">Cancel</button>
+                <button onclick="closeConfirm(true)" class="bg-red-600 text-white py-4 rounded-xl font-black uppercase text-[10px]">Clear</button>
             </div>
         </div>
     </div>
 
-    <div id="page0" class="page page-active">
-        <div class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-            <img src="window-estimator-ai-logo_2.png" alt="Logo" class="w-20 h-20 mb-4 rounded-2xl shadow-2xl">
-            <h1 class="text-2xl font-black text-blue-500 italic uppercase">Window Estimator AI</h1>
-            <div class="w-full max-w-xs space-y-4 mt-8">
-                <input type="text" id="licenseKey" placeholder="ENTER KEY" class="w-full p-4 card rounded-2xl text-center font-bold text-blue-500 outline-none">
-                <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest text-white shadow-lg">Activate</button>
-            </div>
+    <div id="updateModal">
+        <div class="card p-6 rounded-3xl w-full max-w-xs space-y-4 text-center shadow-2xl">
+            <div class="text-blue-400 text-3xl">🚀</div>
+            <h2 class="text-lg font-black uppercase">App Updated!</h2>
+            <div id="updateNotes" class="text-[10px] text-slate-400 font-bold uppercase space-y-2 text-left bg-black/20 p-3 rounded-xl"></div>
+            <button onclick="closeUpdateModal()" class="w-full bg-blue-600 py-3 rounded-xl font-black uppercase text-xs">Got it!</button>
         </div>
     </div>
 
@@ -77,7 +74,6 @@
         </header>
 
         <div class="flex-1 overflow-y-auto p-4">
-            
             <div id="view1" class="view view-active space-y-4">
                 <div class="flex gap-2 overflow-x-auto pb-2" id="galleryThumbs"></div>
                 <div id="canvasContainer" class="relative w-full aspect-video rounded-3xl overflow-hidden shadow-xl canvas-area">
@@ -101,7 +97,7 @@
                         <span class="text-[9px] font-black uppercase opacity-50">Screens</span>
                         <div class="flex items-center gap-3">
                             <button onclick="adjustAddon('screens', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
-                            <span id="screenCountDisplay" class="text-xs font-black text-blue-500">0</span>
+                            <span id="screenCountDisplay" class="text-xs font-black text-blue-400">0</span>
                             <button onclick="adjustAddon('screens', 1)" class="w-8 h-8 bg-blue-600 text-white rounded-lg font-black">+</button>
                         </div>
                     </div>
@@ -109,7 +105,7 @@
                         <span class="text-[9px] font-black uppercase opacity-50">Lanterns</span>
                         <div class="flex items-center gap-3">
                             <button onclick="adjustAddon('lanterns', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
-                            <span id="lanternCountDisplay" class="text-xs font-black text-amber-500">0</span>
+                            <span id="lanternCountDisplay" class="text-xs font-black text-amber-400">0</span>
                             <button onclick="adjustAddon('lanterns', 1)" class="w-8 h-8 bg-amber-500 text-white rounded-lg font-black">+</button>
                         </div>
                     </div>
@@ -135,9 +131,9 @@
                         <span>EST. TIME:</span><span id="estTime">0 min</span>
                     </div>
                 </div>
-                <button onclick="askReset()" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
+                <button onclick="openConfirmModal()" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
             </div>
-
+            
             <div id="view2" class="view space-y-4">
                 <div class="grid grid-cols-1 gap-3">
                     <div class="card p-5 rounded-3xl border-l-4 border-blue-500 shadow-md">
@@ -150,7 +146,6 @@
                     </div>
                 </div>
                 <button onclick="shareSMS()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg">📱 Share Text Quote</button>
-                <button onclick="shareEmail()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg">📧 Office Detail</button>
             </div>
 
             <div id="view3" class="view space-y-4">
@@ -175,12 +170,14 @@
     </div>
 
     <script>
+        const APP_VERSION = "3.0";
+        const UPDATE_NOTES = ["Replaced browser alert with custom Modal", "Fixed Light Mode button visibility", "Optimized Screen/Lantern counters"];
+        
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
         let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
         let addons = { screens: 0, lanterns: 0 };
-        let confirmAction = null;
 
-        let conf = JSON.parse(localStorage.getItem('winAI_v13')) || { 
+        let conf = JSON.parse(localStorage.getItem('winAI_v12')) || { 
             theme:'dark', tax:8.25, timePerWin: 3.5,
             prices:{small:8, medium:12, large:18, door:15, pic:20, screens: 2, lanterns: 5} 
         };
@@ -191,27 +188,26 @@
             setTimeout(() => { toast.classList.remove('show'); }, 2500);
         }
 
-        function askReset() {
-            document.getElementById('confirmModal').style.display = 'flex';
-            confirmAction = () => {
+        // CUSTOM CONFIRM BOX LOGIC
+        function openConfirmModal() { document.getElementById('customConfirm').style.display = 'flex'; }
+        function closeConfirm(proceed) {
+            document.getElementById('customConfirm').style.display = 'none';
+            if(proceed) {
                 markers = []; photos = []; addons = {screens:0, lanterns:0};
                 localStorage.removeItem('winAI_current_job');
                 location.reload();
-            };
-        }
-        function handleConfirm(result) {
-            document.getElementById('confirmModal').style.display = 'none';
-            if(result && confirmAction) confirmAction();
+            }
         }
 
-        function checkLicense() {
-            const k = document.getElementById('licenseKey').value.toUpperCase();
-            if(VALID_KEYS.includes(k)) { localStorage.setItem('winAI_on', '1'); init(); } 
-            else { showToast("Invalid Key"); }
+        function checkVersion() {
+            if (localStorage.getItem('app_v_seen') !== APP_VERSION) {
+                document.getElementById('updateNotes').innerHTML = UPDATE_NOTES.map(n => `<div>• ${n}</div>`).join('');
+                document.getElementById('updateModal').style.display = 'flex';
+            }
         }
+        function closeUpdateModal() { localStorage.setItem('app_v_seen', APP_VERSION); document.getElementById('updateModal').style.display = 'none'; }
 
         function init() {
-            document.getElementById('page0').style.display = 'none';
             document.getElementById('appInterface').classList.remove('hidden');
             document.body.setAttribute('data-theme', conf.theme);
             document.getElementById('laborTime').value = conf.timePerWin;
@@ -226,29 +222,25 @@
                 document.getElementById('screenCountDisplay').innerText = addons.screens;
                 document.getElementById('lanternCountDisplay').innerText = addons.lanterns;
             }
-            renderPrices(); calc();
+            renderPrices(); calc(); checkVersion();
+        }
+
+        function adjustAddon(type, val) {
+            addons[type] = Math.max(0, (addons[type] || 0) + val);
+            document.getElementById(type + 'CountDisplay').innerText = addons[type];
+            calc(); persist();
         }
 
         function persist() { localStorage.setItem('winAI_current_job', JSON.stringify({ markers, addons, photos })); }
-
         function triggerCamera() { document.getElementById('camInput').click(); }
         function triggerGallery() { document.getElementById('galleryInput').click(); }
-
+        
         function showView(n) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('view'+n).classList.add('view-active');
             document.getElementById('nav'+n).classList.add('active');
-            const titles = ["", "Estimator", "Final Quote", "Settings"];
-            document.getElementById('viewTitle').innerText = titles[n];
-        }
-
-        function adjustAddon(type, val) {
-            if(!addons) addons = { screens: 0, lanterns: 0 };
-            addons[type] = Math.max(0, (addons[type] || 0) + val);
-            const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
-            document.getElementById(displayId).innerText = addons[type];
-            calc(); persist();
+            document.getElementById('viewTitle').innerText = ["", "Estimator", "Final Quote", "Settings"][n];
         }
 
         function addImage(e) {
@@ -293,9 +285,9 @@
                     d.style.left = m.x+'%'; d.style.top = m.y+'%';
                     document.getElementById('canvasContainer').appendChild(d);
                 }
-                sub += (conf.prices[m.type] || 0) * m.lvl; counts[m.type]++;
+                sub += conf.prices[m.type] * m.lvl; counts[m.type]++;
             });
-            const addonSub = (addons.screens * (conf.prices.screens || 0)) + (addons.lanterns * (conf.prices.lanterns || 0));
+            const addonSub = (addons.screens * conf.prices.screens) + (addons.lanterns * conf.prices.lanterns);
             const outTotal = (sub + addonSub) * (1 + conf.tax/100);
             const inTotal = outTotal * 1.8;
             const totalTime = (markers.length * conf.timePerWin) + (addons.screens * 1.5) + (addons.lanterns * 3);
@@ -309,17 +301,7 @@
             document.getElementById('liveBreakdown').innerHTML = html;
         }
 
-        function shareSMS() {
-            const b = `Window Quote: Outside ($${document.getElementById('priceOut').innerText}) | In/Out ($${document.getElementById('priceIn').innerText}). Reply to book!`;
-            window.location.href = `sms:?body=${encodeURIComponent(b)}`;
-        }
-
-        function shareEmail() {
-            let d = `OFFICE RECORD\n\nIn/Out: ${document.getElementById('priceIn').innerText}\nOutside: ${document.getElementById('priceOut').innerText}\nItems: ${markers.length}`;
-            window.location.href = `mailto:?subject=Job Detail&body=${encodeURIComponent(d)}`;
-        }
-
-        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v13', JSON.stringify(conf)); showToast("Theme Updated"); }
+        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v12', JSON.stringify(conf)); showToast("Theme Updated"); }
 
         function renderPrices() {
             let h = "";
@@ -330,19 +312,13 @@
         function savePrices() {
             for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
             conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v13', JSON.stringify(conf));
+            localStorage.setItem('winAI_v12', JSON.stringify(conf));
             showToast("Settings Saved");
             calc();
         }
 
-        function undo() { markers.pop(); calc(); persist(); }
-        function logout() { localStorage.removeItem('winAI_on'); location.reload(); }
-        if(localStorage.getItem('winAI_on') === '1') init();
-
-        // PWA REGISTRATION
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registered")).catch((err) => console.log("SW Failed", err));
-        }
+        init();
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
     </script>
 </body>
 </html>
