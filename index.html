@@ -23,11 +23,12 @@
         .marker-pic { width: 22px; height: 22px; border-radius: 4px; rotate: 45deg; background: #f59e0b; }
         
         .card { background-color: var(--card); border: 1px solid var(--border); }
-        .btn-active { background-color: #2563eb !important; color: white !important; }
+        .btn-active { background-color: #2563eb !important; color: white !important; opacity: 1 !important; }
         .page, .view { display: none; }
         .page-active, .view-active { display: block; }
         .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; }
         .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
+        .disabled-floor { opacity: 0.1 !important; pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -65,7 +66,7 @@
                     <button onclick="document.getElementById('camUpload').click()" class="bg-blue-600 text-white p-3 rounded-xl text-[10px] font-bold uppercase">📸 Add Camera/File</button>
                     <button onclick="undo()" class="card p-3 rounded-xl text-[10px] font-bold uppercase">Undo</button>
                 </div>
-                <input type="file" id="camUpload" accept="image/*" class="hidden" onchange="addImage(event)">
+                <input type="file" id="camUpload" accept="image/*" capture="environment" class="hidden" onchange="addImage(event)">
 
                 <div class="grid grid-cols-5 gap-1">
                     <button onclick="setMode('small')" id="btn-small" class="card p-2 rounded-lg text-[8px] font-bold uppercase btn-active">Sm</button>
@@ -182,8 +183,26 @@
         }
 
         function selectPhoto(i) { activePhotoIdx = i; updateGallery(); calc(); }
-        function setMode(m) { curMode = m; document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.toggle('btn-active', b.id==='btn-'+m)); }
-        function setLevel(l) { curLvl = l; [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('btn-active', v===l)); }
+        
+        // Updated Mode logic for Doors
+        function setMode(m) { 
+            curMode = m; 
+            document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.toggle('btn-active', b.id==='btn-'+m)); 
+            
+            if (m === 'door') {
+                setLevel(1);
+                document.getElementById('lvl1.5').classList.add('disabled-floor');
+                document.getElementById('lvl2').classList.add('disabled-floor');
+            } else {
+                document.getElementById('lvl1.5').classList.remove('disabled-floor');
+                document.getElementById('lvl2').classList.remove('disabled-floor');
+            }
+        }
+
+        function setLevel(l) { 
+            curLvl = l; 
+            [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('btn-active', v===l)); 
+        }
 
         function placeMarker(e) {
             const r = e.target.getBoundingClientRect();
@@ -203,7 +222,7 @@
                 sub += conf.prices[m.type] * m.lvl; counts[m.type]++;
             });
             const outTotal = sub * (1 + conf.tax/100);
-            const inTotal = outTotal * 1.8; // Estimated 80% premium for inside
+            const inTotal = outTotal * 1.8;
             const totalTime = markers.length * conf.timePerWin;
 
             document.getElementById('estTime').innerText = `${Math.ceil(totalTime)} minutes`;
