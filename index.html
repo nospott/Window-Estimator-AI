@@ -15,58 +15,74 @@
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3); z-index: 10; }
         .marker-sm { width: 14px; height: 14px; }
         .marker-lg { width: 26px; height: 26px; }
-        .marker-pic { border-radius: 4px !important; rotate: 45deg; }
+        .marker-pic { border-radius: 4px !important; rotate: 45deg; background: #f59e0b !important; }
         .marker-ground { background: #22c55e; }
         .marker-second { background: #3b82f6; }
         .marker-third { background: #ef4444; }
-        .btn-active { border-color: #2563eb !important; background-color: #eff6ff !important; color: #1e40af !important; opacity: 1 !important; }
-        .pic-active { border-color: #f59e0b !important; background-color: #fffbeb !important; color: #b45309 !important; border-style: solid !important; }
-        .btn-disabled { opacity: 0.2; pointer-events: none; }
+        .btn-active { background-color: #2563eb !important; color: white !important; scale: 1.05; border-color: #60a5fa !important; }
         .page { display: none; }
         .page-active { display: block; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-900 font-sans">
+<body class="bg-slate-950 min-h-screen text-slate-100 font-sans">
 
     <div id="page0" class="page page-active">
-        <div class="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-900 text-white text-center">
-            <img src="window-estimator-ai-logo_2.png" alt="Logo" class="w-24 h-24 mb-6 rounded-xl shadow-2xl">
+        <div class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+            <img src="window-estimator-ai-logo_2.png" alt="Logo" class="w-24 h-24 mb-6 rounded-2xl shadow-2xl">
             <h1 class="text-3xl font-black text-blue-400 mb-2 italic uppercase tracking-tighter">Window Estimator AI</h1>
-            <p class="text-slate-400 mb-8 text-xs font-bold uppercase tracking-widest">Subscription Required</p>
+            <p class="text-slate-500 mb-8 text-xs font-bold uppercase tracking-widest">Subscription Required</p>
 
             <div class="w-full max-w-xs space-y-4">
-                <input type="text" id="licenseKey" placeholder="ENTER UNIQUE KEY" class="w-full p-4 bg-slate-800 rounded-2xl border border-slate-700 text-center font-bold tracking-widest uppercase text-blue-400 focus:outline-none focus:border-blue-500">
+                <input type="text" id="licenseKey" placeholder="ENTER UNIQUE KEY" class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center font-bold tracking-widest uppercase text-blue-400 focus:outline-none focus:border-blue-500">
                 <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Activate App</button>
                 
-                <div class="pt-6 border-t border-slate-800">
-                    <p class="text-[10px] text-slate-500 mb-2 italic">No key? Start your 7-day free trial below.</p>
-                    <a href="https://buy.stripe.com/cNiaEZ2Mu7o1etzczh5os00" class="inline-block bg-slate-800 px-6 py-2 rounded-full text-blue-400 font-bold text-xs uppercase tracking-tighter border border-slate-700">Get Individual Key</a>
+                <div class="pt-6 border-t border-slate-900">
+                    <p class="text-[10px] text-slate-500 mb-3 italic font-medium">No key? Start your 7-day free trial below.</p>
+                    <a href="https://buy.stripe.com/cNiaEZ2Mu7o1etzczh5os00" class="inline-block bg-slate-900 px-8 py-3 rounded-full text-blue-400 font-bold text-xs uppercase tracking-widest border border-slate-800 active:bg-slate-800">Get Individual Key</a>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="page1" class="page">
-        <header class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-50">
-            <h1 class="text-xl font-bold italic text-blue-400 uppercase tracking-tighter">1. Visual Estimate</h1>
-            <button onclick="resetData()" class="text-xs bg-slate-700 px-3 py-1 rounded">Reset</button>
+        <header class="bg-slate-900/50 backdrop-blur-md border-b border-slate-800 p-4 sticky top-0 z-50 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <img src="window-estimator-ai-logo_2.png" class="w-6 h-6 rounded">
+                <h1 class="text-sm font-black italic text-blue-400 uppercase tracking-tighter">Estimator Pro</h1>
+            </div>
+            <button onclick="logout()" class="text-[10px] font-bold text-slate-500 uppercase border border-slate-800 px-3 py-1 rounded-full">Lock App</button>
         </header>
 
         <main class="p-4 max-w-md mx-auto space-y-4">
-            <section class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
-                <div id="canvasContainer" class="relative w-full aspect-video bg-slate-800 rounded-xl overflow-hidden mb-4 border-2 border-slate-300 flex items-center justify-center">
+            <section class="bg-slate-900 rounded-3xl p-4 border border-slate-800 shadow-xl">
+                <div id="canvasContainer" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border-2 border-slate-800 flex items-center justify-center mb-4">
                     <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                    <p id="placeholderText" class="text-slate-400 text-[10px] font-bold uppercase text-center">Upload Photo To Begin</p>
+                    <div id="placeholder" class="text-center space-y-2">
+                        <div class="text-blue-500/20 text-4xl">📸</div>
+                        <p class="text-slate-600 text-[10px] font-bold uppercase tracking-widest">Upload Property Photo</p>
+                    </div>
                 </div>
                 
                 <input type="file" id="photoUpload" accept="image/*" class="hidden" onchange="handleUpload(event)">
-                <button onclick="document.getElementById('photoUpload').click()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm mb-4">Capture Property Photo</button>
+                <button onclick="document.getElementById('photoUpload').click()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-900/20 active:scale-95 transition-all">Capture Photo</button>
             </section>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
+                    <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-1">Total Count</p>
+                    <p id="totalCount" class="text-2xl font-black text-blue-400 leading-none">0</p>
+                </div>
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
+                    <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-1">Est. Total</p>
+                    <p id="totalPrice" class="text-2xl font-black text-green-400 leading-none">$0</p>
+                </div>
+            </div>
         </main>
     </div>
 
     <script>
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
+        let markers = [];
 
         function checkLicense() {
             const key = document.getElementById('licenseKey').value.trim().toUpperCase();
@@ -74,13 +90,18 @@
                 localStorage.setItem('windowAI_active', 'true');
                 showApp();
             } else {
-                alert("Invalid License Key. Please purchase a key to continue.");
+                alert("Invalid Key. Check your email or purchase a new subscription.");
             }
         }
 
         function showApp() {
-            document.getElementById('page0').classList.remove('page-active');
-            document.getElementById('page1').classList.add('page-active');
+            document.getElementById('page0').style.display = 'none';
+            document.getElementById('page1').style.display = 'block';
+        }
+
+        function logout() {
+            localStorage.removeItem('windowAI_active');
+            location.reload();
         }
 
         function handleUpload(e) {
@@ -91,13 +112,13 @@
                     const img = document.getElementById('mainPhoto');
                     img.src = event.target.result;
                     img.classList.remove('hidden');
-                    document.getElementById('placeholderText').classList.add('hidden');
+                    document.getElementById('placeholder').style.display = 'none';
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        // Auto-login if already activated
+        // Auto-login logic
         if (localStorage.getItem('windowAI_active') === 'true') {
             showApp();
         }
