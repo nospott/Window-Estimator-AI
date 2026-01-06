@@ -388,6 +388,12 @@
         function resetJob() { if(confirm("Clear current job? This will delete active photos and counts.")) { markers = []; photos = []; addons = {screens:0, lanterns:0}; localStorage.removeItem('winAI_current_job'); location.reload(); } }
         function logout() { localStorage.removeItem('winAI_on'); location.reload(); }
         if(localStorage.getItem('winAI_on') === '1') init();
+        // Register Service Worker for PWA Installation
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+    .then(() => console.log("Service Worker Registered"))
+    .catch((err) => console.log("Service Worker Failed", err));
+}
     </script>
 </body>
 </html>
