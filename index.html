@@ -11,8 +11,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --bg: #020617; --card: #0f172a; --text: #f1f5f9; --border: #1e293b; }
-        [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --border: #e2e8f0; }
+        /* Theme Variables - Adjusted for softer contrast */
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --canvas: #020617; }
+        [data-theme="light"] { --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --border: #cbd5e1; --canvas: #e2e8f0; }
 
         body { background-color: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; font-family: sans-serif; transition: background 0.3s; }
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10; }
@@ -23,12 +24,14 @@
         .marker-pic { width: 22px; height: 22px; border-radius: 4px; rotate: 45deg; background: #f59e0b; }
         
         .card { background-color: var(--card); border: 1px solid var(--border); }
+        .canvas-area { background-color: var(--canvas); border: 2px solid var(--border); }
+        
         .btn-active { background-color: #2563eb !important; color: white !important; opacity: 1 !important; }
         .page, .view { display: none; }
         .page-active, .view-active { display: block; }
         .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; }
         .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
-        .disabled-floor { opacity: 0.1 !important; pointer-events: none; }
+        .disabled-floor { opacity: 0.05 !important; pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -39,7 +42,7 @@
             <h1 class="text-2xl font-black text-blue-500 italic uppercase">Window Estimator AI</h1>
             <div class="w-full max-w-xs space-y-4 mt-8">
                 <input type="text" id="licenseKey" placeholder="ENTER KEY" class="w-full p-4 card rounded-2xl text-center font-bold text-blue-500 outline-none">
-                <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest text-white">Activate</button>
+                <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest text-white shadow-lg">Activate</button>
             </div>
         </div>
     </div>
@@ -55,18 +58,19 @@
             <div id="view1" class="view view-active space-y-4">
                 <div class="flex gap-2 overflow-x-auto pb-2" id="galleryThumbs"></div>
 
-                <div id="canvasContainer" class="relative w-full aspect-video bg-black rounded-3xl overflow-hidden border-2 border-slate-800 shadow-xl">
+                <div id="canvasContainer" class="relative w-full aspect-video rounded-3xl overflow-hidden shadow-xl canvas-area">
                     <img id="activeImg" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                    <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-2" onclick="document.getElementById('camUpload').click()">
-                        <p class="text-[10px] font-bold opacity-40 uppercase italic">Tap to Add Photo</p>
+                    <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-2" onclick="openCamera()">
+                        <div class="text-blue-500 text-3xl opacity-40">📸</div>
+                        <p class="text-[10px] font-bold opacity-60 uppercase italic">Tap to Open Camera</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="document.getElementById('camUpload').click()" class="bg-blue-600 text-white p-3 rounded-xl text-[10px] font-bold uppercase">📸 Add Camera/File</button>
-                    <button onclick="undo()" class="card p-3 rounded-xl text-[10px] font-bold uppercase">Undo</button>
+                    <button onclick="openCamera()" class="bg-blue-600 text-white p-3 rounded-xl text-[10px] font-bold uppercase shadow-lg">📸 Capture Photo</button>
+                    <button onclick="undo()" class="card p-3 rounded-xl text-[10px] font-bold uppercase">Undo Last</button>
                 </div>
-                <input type="file" id="camUpload" accept="image/*" capture="environment" class="hidden" onchange="addImage(event)">
+                <input type="file" id="camInput" accept="image/*" capture="environment" class="hidden" onchange="addImage(event)">
 
                 <div class="grid grid-cols-5 gap-1">
                     <button onclick="setMode('small')" id="btn-small" class="card p-2 rounded-lg text-[8px] font-bold uppercase btn-active">Sm</button>
@@ -84,7 +88,7 @@
 
                 <div class="card p-4 rounded-2xl text-[10px] space-y-2">
                     <div id="liveBreakdown" class="space-y-1 opacity-70"></div>
-                    <div class="flex justify-between font-black text-blue-500 border-t border-slate-700 pt-2 text-xs">
+                    <div class="flex justify-between font-black text-blue-500 border-t border-slate-700/30 pt-2 text-xs">
                         <span>EST. TIME:</span><span id="estTime">0 min</span>
                     </div>
                 </div>
@@ -92,17 +96,17 @@
 
             <div id="view2" class="view space-y-4">
                 <div class="grid grid-cols-1 gap-3">
-                    <div class="card p-5 rounded-3xl border-l-4 border-blue-500">
+                    <div class="card p-5 rounded-3xl border-l-4 border-blue-500 shadow-md">
                         <p class="text-[9px] font-bold uppercase opacity-50 mb-1">Inside & Outside</p>
                         <h2 class="text-2xl font-black text-blue-500" id="priceIn"></h2>
                     </div>
-                    <div class="card p-5 rounded-3xl border-l-4 border-green-500">
+                    <div class="card p-5 rounded-3xl border-l-4 border-green-500 shadow-md">
                         <p class="text-[9px] font-bold uppercase opacity-50 mb-1">Outside Only</p>
                         <h2 class="text-2xl font-black text-green-500" id="priceOut"></h2>
                     </div>
                 </div>
 
-                <div class="card p-5 rounded-3xl">
+                <div class="card p-5 rounded-3xl shadow-sm">
                     <h3 class="text-[10px] font-black uppercase mb-3 text-blue-500">Cleaner Recommendations</h3>
                     <select id="scheduleRec" class="w-full card p-3 rounded-xl text-[10px] font-bold uppercase outline-none">
                         <option value="3 Months">Every 3 Months (Recommended)</option>
@@ -111,22 +115,22 @@
                     </select>
                 </div>
 
-                <button onclick="shareSMS()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase text-xs">📱 Share Quote via Text</button>
-                <button onclick="shareEmail()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-xs">📧 Office Record (Email)</button>
+                <button onclick="shareSMS()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg">📱 Share Quote via Text</button>
+                <button onclick="shareEmail()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg">📧 Office Record (Email)</button>
             </div>
 
             <div id="view3" class="view space-y-4">
-                <div class="card p-6 rounded-3xl space-y-4">
-                    <h3 class="text-xs font-bold uppercase text-blue-500">App Theme</h3>
-                    <button onclick="toggleTheme()" id="themeBtn" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Switch Theme</button>
+                <div class="card p-6 rounded-3xl space-y-4 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase text-blue-500">Appearance</h3>
+                    <button onclick="toggleTheme()" id="themeBtn" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase shadow-sm">Toggle Dark/Light Mode</button>
                     
-                    <h3 class="text-xs font-bold uppercase text-blue-500 mt-6">Pricing & Labor</h3>
+                    <h3 class="text-xs font-bold uppercase text-blue-500 mt-6">Pricing & Performance</h3>
                     <div class="space-y-3" id="priceSettings"></div>
                     <div>
-                        <label class="text-[8px] uppercase font-bold opacity-50">Min. Per Window (Time)</label>
-                        <input type="number" id="laborTime" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1">
+                        <label class="text-[8px] uppercase font-bold opacity-50">Minutes Per Window</label>
+                        <input type="number" id="laborTime" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1 outline-none">
                     </div>
-                    <button onclick="savePrices()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-[10px]">Save Settings</button>
+                    <button onclick="savePrices()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Save All Settings</button>
                 </div>
             </div>
         </div>
@@ -141,7 +145,7 @@
     <script>
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
         let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
-        let conf = JSON.parse(localStorage.getItem('winAI_v3')) || { 
+        let conf = JSON.parse(localStorage.getItem('winAI_v4')) || { 
             theme:'dark', tax:8.25, timePerWin: 3.5,
             prices:{small:8, medium:12, large:18, door:15, pic:20} 
         };
@@ -159,6 +163,8 @@
             renderPrices(); calc();
         }
 
+        function openCamera() { document.getElementById('camInput').click(); }
+
         function showView(n) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -168,7 +174,8 @@
         }
 
         function addImage(e) {
-            if(photos.length >= 20) return alert("Gallery full.");
+            if(!e.target.files[0]) return;
+            if(photos.length >= 20) return alert("Storage full (Max 20).");
             const reader = new FileReader();
             reader.onload = (f) => {
                 photos.push(f.target.result); activePhotoIdx = photos.length - 1; updateGallery();
@@ -180,29 +187,19 @@
             document.getElementById('galleryThumbs').innerHTML = photos.map((p, i) => `<img src="${p}" onclick="selectPhoto(${i})" class="w-12 h-12 object-cover rounded-lg border-2 ${i===activePhotoIdx?'border-blue-500':'border-transparent'}">`).join('');
             const img = document.getElementById('activeImg'); img.src = photos[activePhotoIdx]; img.classList.remove('hidden');
             document.getElementById('placeholder').style.display = 'none';
+            calc();
         }
 
-        function selectPhoto(i) { activePhotoIdx = i; updateGallery(); calc(); }
-        
-        // Updated Mode logic for Doors
+        function selectPhoto(i) { activePhotoIdx = i; updateGallery(); }
+
         function setMode(m) { 
             curMode = m; 
             document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.toggle('btn-active', b.id==='btn-'+m)); 
-            
-            if (m === 'door') {
-                setLevel(1);
-                document.getElementById('lvl1.5').classList.add('disabled-floor');
-                document.getElementById('lvl2').classList.add('disabled-floor');
-            } else {
-                document.getElementById('lvl1.5').classList.remove('disabled-floor');
-                document.getElementById('lvl2').classList.remove('disabled-floor');
-            }
+            if (m === 'door') { setLevel(1); document.getElementById('lvl1.5').classList.add('disabled-floor'); document.getElementById('lvl2').classList.add('disabled-floor'); }
+            else { document.getElementById('lvl1.5').classList.remove('disabled-floor'); document.getElementById('lvl2').classList.remove('disabled-floor'); }
         }
 
-        function setLevel(l) { 
-            curLvl = l; 
-            [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('btn-active', v===l)); 
-        }
+        function setLevel(l) { curLvl = l; [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('btn-active', v===l)); }
 
         function placeMarker(e) {
             const r = e.target.getBoundingClientRect();
@@ -230,40 +227,37 @@
             document.getElementById('priceOut').innerText = `$${outTotal.toFixed(2)}`;
             
             let html = "";
-            for(let t in counts) if(counts[t]>0) html += `<div class="flex justify-between uppercase"><span>${t} Items (x${counts[t]})</span><span>$${(counts[t]*conf.prices[t]).toFixed(2)}</span></div>`;
+            for(let t in counts) if(counts[t]>0) html += `<div class="flex justify-between uppercase"><span>${t} (x${counts[t]})</span><span>$${(counts[t]*conf.prices[t]).toFixed(2)}</span></div>`;
             document.getElementById('liveBreakdown').innerHTML = html;
         }
 
         function shareSMS() {
-            const schedule = document.getElementById('scheduleRec').value;
-            const body = `Window Quote: Outside Only ($${document.getElementById('priceOut').innerText}) or In/Out ($${document.getElementById('priceIn').innerText}). Recommended schedule: ${schedule}. Reply to book!`;
-            window.location.href = `sms:?body=${encodeURIComponent(body)}`;
+            const b = `Window Quote: Outside ($${document.getElementById('priceOut').innerText}) | In/Out ($${document.getElementById('priceIn').innerText}). Recommended: ${document.getElementById('scheduleRec').value}. Reply to book!`;
+            window.location.href = `sms:?body=${encodeURIComponent(b)}`;
         }
 
         function shareEmail() {
-            let detail = `OFFICE RECORD\n\nInside/Out: ${document.getElementById('priceIn').innerText}\nOutside Only: ${document.getElementById('priceOut').innerText}\n\n`;
-            detail += `Est. Labor: ${document.getElementById('estTime').innerText}\nTotal Items: ${markers.length}\nRec: ${document.getElementById('scheduleRec').value}\n\n`;
-            detail += `Photos: ${photos.length}`;
-            window.location.href = `mailto:?subject=Job Record&body=${encodeURIComponent(detail)}`;
+            let d = `OFFICE RECORD\n\nIn/Out: ${document.getElementById('priceIn').innerText}\nOutside: ${document.getElementById('priceOut').innerText}\nLabor: ${document.getElementById('estTime').innerText}\nItems: ${markers.length}`;
+            window.location.href = `mailto:?subject=Job Detail&body=${encodeURIComponent(d)}`;
         }
 
         function toggleTheme() {
             conf.theme = conf.theme==='dark'?'light':'dark';
             document.body.setAttribute('data-theme', conf.theme);
-            localStorage.setItem('winAI_v3', JSON.stringify(conf));
+            localStorage.setItem('winAI_v4', JSON.stringify(conf));
         }
 
         function renderPrices() {
             let h = "";
-            for(let p in conf.prices) h += `<div><label class="text-[8px] uppercase font-bold opacity-50">${p}</label><input type="number" id="p-${p}" value="${conf.prices[p]}" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1"></div>`;
+            for(let p in conf.prices) h += `<div><label class="text-[8px] uppercase font-bold opacity-50">${p} ($)</label><input type="number" id="p-${p}" value="${conf.prices[p]}" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1 outline-none"></div>`;
             document.getElementById('priceSettings').innerHTML = h;
         }
 
         function savePrices() {
             for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
             conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v3', JSON.stringify(conf));
-            alert('Settings Saved!'); calc();
+            localStorage.setItem('winAI_v4', JSON.stringify(conf));
+            alert('Settings Updated!'); calc();
         }
 
         function undo() { markers.pop(); calc(); }
