@@ -11,7 +11,6 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Theme Variables - Adjusted for softer contrast */
         :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --canvas: #020617; }
         [data-theme="light"] { --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --border: #cbd5e1; --canvas: #e2e8f0; }
 
@@ -34,9 +33,15 @@
         .disabled-floor { opacity: 0.05 !important; pointer-events: none; }
 
         #updateModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+        
+        /* New Custom Toast Notification Styles */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 12px 24px; border-radius: 50px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 10001; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; margin-top: -100px; pointer-events: none; }
+        #toast.show { opacity: 1; margin-top: 0; }
     </style>
 </head>
 <body class="min-h-screen">
+
+    <div id="toast">Settings Updated</div>
 
     <div id="updateModal">
         <div class="card p-6 rounded-3xl w-full max-w-xs space-y-4 text-center">
@@ -149,7 +154,7 @@
                         <label class="text-[8px] uppercase font-bold opacity-50">Mins/Window</label>
                         <input type="number" id="laborTime" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1 outline-none">
                     </div>
-                    <button onclick="savePrices()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Save Settings</button>
+                    <button onclick="savePrices()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Save All Settings</button>
                 </div>
             </div>
         </div>
@@ -162,23 +167,28 @@
     </div>
 
     <script>
-        const APP_VERSION = "2.2";
-        const UPDATE_NOTES = ["Fixed Screen and Lantern counter functions", "Optimized pricing math for add-ons", "Persistent dark theme fixes"];
+        const APP_VERSION = "2.3";
+        const UPDATE_NOTES = ["Replaced professional alerts with custom Toast notifications", "Improved theme consistency", "Fixed Screen/Lantern display lag"];
         
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
         let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
-        
-        // Ensure these variables are globally accessible
         let addons = { screens: 0, lanterns: 0 };
-        
-        let conf = JSON.parse(localStorage.getItem('winAI_v7')) || { 
+        let conf = JSON.parse(localStorage.getItem('winAI_v8')) || { 
             theme:'dark', tax:8.25, timePerWin: 3.5,
             prices:{small:8, medium:12, large:18, door:15, pic:20, screens: 2, lanterns: 5} 
         };
 
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2500);
+        }
+
         function checkLicense() {
             const k = document.getElementById('licenseKey').value.toUpperCase();
-            if(VALID_KEYS.includes(k)) { localStorage.setItem('winAI_on', '1'); init(); } else { alert('Invalid Key'); }
+            if(VALID_KEYS.includes(k)) { localStorage.setItem('winAI_on', '1'); init(); } 
+            else { showToast("Invalid License Key"); }
         }
 
         function init() {
@@ -209,7 +219,6 @@
             document.getElementById('viewTitle').innerText = titles[n];
         }
 
-        // FIXED FUNCTION: Correctly updates global 'addons' and displays new total
         function adjustAddon(type, val) {
             addons[type] = Math.max(0, addons[type] + val);
             const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
@@ -261,16 +270,13 @@
                 }
                 sub += conf.prices[m.type] * m.lvl; counts[m.type]++;
             });
-            
             const addonSub = (addons.screens * conf.prices.screens) + (addons.lanterns * conf.prices.lanterns);
             const outTotal = (sub + addonSub) * (1 + conf.tax/100);
             const inTotal = outTotal * 1.8;
             const totalTime = (markers.length * conf.timePerWin) + (addons.screens * 1.5) + (addons.lanterns * 3);
-
             document.getElementById('estTime').innerText = `${Math.ceil(totalTime)} minutes`;
             document.getElementById('priceIn').innerText = `$${inTotal.toFixed(2)}`;
             document.getElementById('priceOut').innerText = `$${outTotal.toFixed(2)}`;
-            
             let html = "";
             for(let t in counts) if(counts[t]>0) html += `<div class="flex justify-between uppercase"><span>${t} (x${counts[t]})</span><span>$${(counts[t]*conf.prices[t]).toFixed(2)}</span></div>`;
             if(addons.screens > 0) html += `<div class="flex justify-between uppercase text-blue-400"><span>Screens (x${addons.screens})</span><span>$${(addons.screens*conf.prices.screens).toFixed(2)}</span></div>`;
@@ -288,7 +294,7 @@
             window.location.href = `mailto:?subject=Job Detail&body=${encodeURIComponent(d)}`;
         }
 
-        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v7', JSON.stringify(conf)); }
+        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v8', JSON.stringify(conf)); showToast("Theme Updated"); }
 
         function renderPrices() {
             let h = "";
@@ -299,8 +305,9 @@
         function savePrices() {
             for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
             conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v7', JSON.stringify(conf));
-            alert('Settings Updated!'); calc();
+            localStorage.setItem('winAI_v8', JSON.stringify(conf));
+            showToast("All Settings Saved");
+            calc();
         }
 
         function undo() { markers.pop(); calc(); }
