@@ -31,14 +31,11 @@
             <img src="window-estimator-ai-logo_2.png" alt="Logo" class="w-24 h-24 mb-6 rounded-2xl shadow-2xl">
             <h1 class="text-3xl font-black text-blue-400 mb-2 italic uppercase tracking-tighter">Window Estimator AI</h1>
             <p class="text-slate-500 mb-8 text-xs font-bold uppercase tracking-widest">Subscription Required</p>
-
             <div class="w-full max-w-xs space-y-4">
-                <input type="text" id="licenseKey" placeholder="ENTER UNIQUE KEY" class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center font-bold tracking-widest uppercase text-blue-400 focus:outline-none focus:border-blue-500">
+                <input type="text" id="licenseKey" placeholder="ENTER UNIQUE KEY" class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center font-bold tracking-widest uppercase text-blue-400">
                 <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Activate App</button>
-                
                 <div class="pt-6 border-t border-slate-900">
-                    <p class="text-[10px] text-slate-500 mb-3 italic font-medium">No key? Start your 7-day free trial below.</p>
-                    <a href="https://buy.stripe.com/cNiaEZ2Mu7o1etzczh5os00" class="inline-block bg-slate-900 px-8 py-3 rounded-full text-blue-400 font-bold text-xs uppercase tracking-widest border border-slate-800 active:bg-slate-800">Get Individual Key</a>
+                    <a href="https://buy.stripe.com/cNiaEZ2Mu7o1etzczh5os00" class="inline-block bg-slate-900 px-8 py-3 rounded-full text-blue-400 font-bold text-xs uppercase tracking-widest border border-slate-800">Get Individual Key</a>
                 </div>
             </div>
         </div>
@@ -50,31 +47,50 @@
                 <img src="window-estimator-ai-logo_2.png" class="w-6 h-6 rounded">
                 <h1 class="text-sm font-black italic text-blue-400 uppercase tracking-tighter">Estimator Pro</h1>
             </div>
-            <button onclick="logout()" class="text-[10px] font-bold text-slate-500 uppercase border border-slate-800 px-3 py-1 rounded-full">Lock App</button>
+            <button onclick="logout()" class="text-[10px] font-bold text-slate-500 uppercase border border-slate-800 px-3 py-1 rounded-full">Lock</button>
         </header>
 
-        <main class="p-4 max-w-md mx-auto space-y-4">
-            <section class="bg-slate-900 rounded-3xl p-4 border border-slate-800 shadow-xl">
-                <div id="canvasContainer" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border-2 border-slate-800 flex items-center justify-center mb-4">
-                    <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                    <div id="placeholder" class="text-center space-y-2">
-                        <div class="text-blue-500/20 text-4xl">📸</div>
-                        <p class="text-slate-600 text-[10px] font-bold uppercase tracking-widest">Upload Property Photo</p>
-                    </div>
+        <main class="p-4 max-w-md mx-auto space-y-6">
+            <div id="canvasContainer" class="relative w-full aspect-video bg-black rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl">
+                <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
+                <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-2" onclick="document.getElementById('photoUpload').click()">
+                    <div class="text-blue-500/20 text-5xl">📸</div>
+                    <p class="text-slate-600 text-[10px] font-bold uppercase tracking-widest">Tap to Upload Photo</p>
                 </div>
-                
-                <input type="file" id="photoUpload" accept="image/*" class="hidden" onchange="handleUpload(event)">
-                <button onclick="document.getElementById('photoUpload').click()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-900/20 active:scale-95 transition-all">Capture Photo</button>
-            </section>
+            </div>
+            <input type="file" id="photoUpload" accept="image/*" class="hidden" onchange="handleUpload(event)">
 
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
-                    <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-1">Total Count</p>
-                    <p id="totalCount" class="text-2xl font-black text-blue-400 leading-none">0</p>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="setMode('ground')" id="btn-ground" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center btn-active">
+                    <span class="w-3 h-3 bg-green-500 rounded-full mb-1"></span>
+                    <span class="text-[10px] font-bold uppercase">Ground</span>
+                </button>
+                <button onclick="setMode('second')" id="btn-second" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center opacity-50">
+                    <span class="w-3 h-3 bg-blue-500 rounded-full mb-1"></span>
+                    <span class="text-[10px] font-bold uppercase">2nd</span>
+                </button>
+                <button onclick="setMode('third')" id="btn-third" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center opacity-50">
+                    <span class="w-3 h-3 bg-red-500 rounded-full mb-1"></span>
+                    <span class="text-[10px] font-bold uppercase">3rd</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="setMode('pic')" id="btn-pic" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex items-center justify-center gap-2 opacity-50">
+                    <span class="w-3 h-3 bg-amber-500 rounded-sm rotate-45"></span>
+                    <span class="text-[10px] font-bold uppercase">Picture/Door</span>
+                </button>
+                <button onclick="undo()" class="bg-slate-800 p-3 rounded-xl text-[10px] font-bold uppercase text-slate-400">Undo Last</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl">
+                <div>
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Total Items</p>
+                    <p id="totalCount" class="text-3xl font-black text-blue-400 leading-none">0</p>
                 </div>
-                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-center">
-                    <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest mb-1">Est. Total</p>
-                    <p id="totalPrice" class="text-2xl font-black text-green-400 leading-none">$0</p>
+                <div class="text-right">
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Estimated Quote</p>
+                    <p id="totalPrice" class="text-3xl font-black text-green-400 leading-none">$0</p>
                 </div>
             </div>
         </main>
@@ -82,16 +98,16 @@
 
     <script>
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
+        let currentMode = 'ground';
         let markers = [];
+        const PRICES = { ground: 8, second: 12, third: 18, pic: 15 };
 
         function checkLicense() {
             const key = document.getElementById('licenseKey').value.trim().toUpperCase();
             if (VALID_KEYS.includes(key)) {
                 localStorage.setItem('windowAI_active', 'true');
                 showApp();
-            } else {
-                alert("Invalid Key. Check your email or purchase a new subscription.");
-            }
+            } else { alert("Invalid Key."); }
         }
 
         function showApp() {
@@ -99,9 +115,14 @@
             document.getElementById('page1').style.display = 'block';
         }
 
-        function logout() {
-            localStorage.removeItem('windowAI_active');
-            location.reload();
+        function logout() { localStorage.removeItem('windowAI_active'); location.reload(); }
+
+        function setMode(mode) {
+            currentMode = mode;
+            ['ground', 'second', 'third', 'pic'].forEach(m => {
+                document.getElementById('btn-' + m).classList.toggle('btn-active', m === mode);
+                document.getElementById('btn-' + m).classList.toggle('opacity-50', m !== mode);
+            });
         }
 
         function handleUpload(e) {
@@ -118,10 +139,37 @@
             }
         }
 
-        // Auto-login logic
-        if (localStorage.getItem('windowAI_active') === 'true') {
-            showApp();
+        function placeMarker(e) {
+            const rect = e.target.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            const marker = { x, y, type: currentMode };
+            markers.push(marker);
+            renderMarkers();
         }
+
+        function renderMarkers() {
+            const container = document.getElementById('canvasContainer');
+            document.querySelectorAll('.marker').forEach(m => m.remove());
+            
+            let total = 0;
+            markers.forEach((m, index) => {
+                const div = document.createElement('div');
+                div.className = `marker marker-${m.type === 'pic' ? 'lg marker-pic' : 'sm'} marker-${m.type}`;
+                div.style.left = m.x + '%';
+                div.style.top = m.y + '%';
+                container.appendChild(div);
+                total += PRICES[m.type];
+            });
+
+            document.getElementById('totalCount').innerText = markers.length;
+            document.getElementById('totalPrice').innerText = '$' + total;
+        }
+
+        function undo() { markers.pop(); renderMarkers(); }
+
+        if (localStorage.getItem('windowAI_active') === 'true') { showApp(); }
     </script>
 </body>
 </html>
