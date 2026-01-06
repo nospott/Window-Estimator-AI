@@ -31,13 +31,12 @@
         .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b; }
         .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
 
-        /* Professional Toast & Custom Modals */
+        /* Custom Modals & Toasts */
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 12px 24px; border-radius: 50px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 10001; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; margin-top: -100px; pointer-events: none; }
         #toast.show { opacity: 1; margin-top: 0; }
 
-        #updateModal, #customConfirm { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
+        #updateModal, #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
         
-        /* Light Mode UI Fixes */
         [data-theme="light"] .minus-btn { background-color: #e2e8f0 !important; color: #0f172a !important; }
         [data-theme="light"] .card { color: #0f172a !important; }
     </style>
@@ -46,15 +45,13 @@
 
     <div id="toast">Settings Updated</div>
 
-    <div id="customConfirm">
+    <div id="customModal">
         <div class="card p-8 rounded-3xl w-full max-w-xs space-y-6 text-center shadow-2xl">
-            <div class="text-red-500 text-3xl">⚠️</div>
-            <h2 class="text-xs font-black uppercase tracking-widest">Clear Current Job?</h2>
-            <p class="text-[10px] opacity-60 font-bold uppercase">This will delete all active photos and counts for this job.</p>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="closeConfirm(false)" class="card py-4 rounded-xl font-black uppercase text-[10px] opacity-50">Cancel</button>
-                <button onclick="closeConfirm(true)" class="bg-red-600 text-white py-4 rounded-xl font-black uppercase text-[10px]">Clear</button>
-            </div>
+            <div id="modalIcon" class="text-3xl">⚠️</div>
+            <h2 id="modalTitle" class="text-xs font-black uppercase tracking-widest"></h2>
+            <p id="modalBody" class="text-[10px] opacity-60 font-bold uppercase"></p>
+            <div id="modalButtons" class="grid grid-cols-2 gap-3">
+                </div>
         </div>
     </div>
 
@@ -63,7 +60,7 @@
             <div class="text-blue-400 text-3xl">🚀</div>
             <h2 class="text-lg font-black uppercase">App Updated!</h2>
             <div id="updateNotes" class="text-[10px] text-slate-400 font-bold uppercase space-y-2 text-left bg-black/20 p-3 rounded-xl"></div>
-            <button onclick="closeUpdateModal()" class="w-full bg-blue-600 py-3 rounded-xl font-black uppercase text-xs">Got it!</button>
+            <button onclick="closeUpdateModal()" class="w-full bg-blue-600 py-3 rounded-xl font-black uppercase text-xs text-white">Got it!</button>
         </div>
     </div>
 
@@ -97,7 +94,7 @@
                         <span class="text-[9px] font-black uppercase opacity-50">Screens</span>
                         <div class="flex items-center gap-3">
                             <button onclick="adjustAddon('screens', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
-                            <span id="screenCountDisplay" class="text-xs font-black text-blue-400">0</span>
+                            <span id="screenCountDisplay" class="text-xs font-black text-blue-500">0</span>
                             <button onclick="adjustAddon('screens', 1)" class="w-8 h-8 bg-blue-600 text-white rounded-lg font-black">+</button>
                         </div>
                     </div>
@@ -131,7 +128,7 @@
                         <span>EST. TIME:</span><span id="estTime">0 min</span>
                     </div>
                 </div>
-                <button onclick="openConfirmModal()" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
+                <button onclick="appConfirm('Clear Job?', 'Delete all photos and counts?', resetJobLogic)" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
             </div>
             
             <div id="view2" class="view space-y-4">
@@ -150,8 +147,8 @@
 
             <div id="view3" class="view space-y-4">
                 <div class="card p-6 rounded-3xl space-y-4 shadow-sm">
-                    <button onclick="toggleTheme()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Toggle Dark/Light</button>
-                    <button onclick="exportCSV()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase text-green-500">Export CSV Data</button>
+                    <button onclick="toggleTheme()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Toggle Theme</button>
+                    <button onclick="exportCSV()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase text-green-500">Export CSV</button>
                     <div class="space-y-3" id="priceSettings"></div>
                     <div>
                         <label class="text-[8px] uppercase font-bold opacity-50">Mins/Window</label>
@@ -170,14 +167,14 @@
     </div>
 
     <script>
-        const APP_VERSION = "3.0";
-        const UPDATE_NOTES = ["Replaced browser alert with custom Modal", "Fixed Light Mode button visibility", "Optimized Screen/Lantern counters"];
+        const APP_VERSION = "3.1";
+        const UPDATE_NOTES = ["Fixed 'nospott' browser alert URL popup", "Screen and Lantern counters now update correctly", "Professional light mode visibility fixes"];
         
-        const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
         let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
         let addons = { screens: 0, lanterns: 0 };
+        let currentModalCallback = null;
 
-        let conf = JSON.parse(localStorage.getItem('winAI_v12')) || { 
+        let conf = JSON.parse(localStorage.getItem('winAI_v14')) || { 
             theme:'dark', tax:8.25, timePerWin: 3.5,
             prices:{small:8, medium:12, large:18, door:15, pic:20, screens: 2, lanterns: 5} 
         };
@@ -188,15 +185,30 @@
             setTimeout(() => { toast.classList.remove('show'); }, 2500);
         }
 
-        // CUSTOM CONFIRM BOX LOGIC
-        function openConfirmModal() { document.getElementById('customConfirm').style.display = 'flex'; }
-        function closeConfirm(proceed) {
-            document.getElementById('customConfirm').style.display = 'none';
-            if(proceed) {
-                markers = []; photos = []; addons = {screens:0, lanterns:0};
-                localStorage.removeItem('winAI_current_job');
-                location.reload();
-            }
+        // --- CUSTOM MODAL SYSTEM ---
+        function appConfirm(title, body, callback) {
+            const modal = document.getElementById('customModal');
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerText = body;
+            document.getElementById('modalIcon').innerText = "⚠️";
+            document.getElementById('modalButtons').innerHTML = `
+                <button onclick="closeModal(false)" class="card py-4 rounded-xl font-black uppercase text-[10px] opacity-50">Cancel</button>
+                <button onclick="closeModal(true)" class="bg-red-600 text-white py-4 rounded-xl font-black uppercase text-[10px]">Clear</button>
+            `;
+            modal.style.display = 'flex';
+            currentModalCallback = callback;
+        }
+
+        function closeModal(result) {
+            document.getElementById('customModal').style.display = 'none';
+            if(result && currentModalCallback) currentModalCallback();
+            currentModalCallback = null;
+        }
+
+        function resetJobLogic() {
+            markers = []; photos = []; addons = {screens:0, lanterns:0};
+            localStorage.removeItem('winAI_current_job');
+            location.reload();
         }
 
         function checkVersion() {
@@ -219,15 +231,17 @@
                 photos = savedJob.photos || [];
                 activePhotoIdx = photos.length > 0 ? 0 : -1;
                 if(activePhotoIdx !== -1) updateGallery();
-                document.getElementById('screenCountDisplay').innerText = addons.screens;
-                document.getElementById('lanternCountDisplay').innerText = addons.lanterns;
+                document.getElementById('screenCountDisplay').innerText = addons.screens || 0;
+                document.getElementById('lanternCountDisplay').innerText = addons.lanterns || 0;
             }
             renderPrices(); calc(); checkVersion();
         }
 
         function adjustAddon(type, val) {
+            if(!addons) addons = { screens: 0, lanterns: 0 };
             addons[type] = Math.max(0, (addons[type] || 0) + val);
-            document.getElementById(type + 'CountDisplay').innerText = addons[type];
+            const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
+            document.getElementById(displayId).innerText = addons[type];
             calc(); persist();
         }
 
@@ -285,9 +299,9 @@
                     d.style.left = m.x+'%'; d.style.top = m.y+'%';
                     document.getElementById('canvasContainer').appendChild(d);
                 }
-                sub += conf.prices[m.type] * m.lvl; counts[m.type]++;
+                sub += (conf.prices[m.type] || 0) * m.lvl; counts[m.type]++;
             });
-            const addonSub = (addons.screens * conf.prices.screens) + (addons.lanterns * conf.prices.lanterns);
+            const addonSub = (addons.screens * (conf.prices.screens || 0)) + (addons.lanterns * (conf.prices.lanterns || 0));
             const outTotal = (sub + addonSub) * (1 + conf.tax/100);
             const inTotal = outTotal * 1.8;
             const totalTime = (markers.length * conf.timePerWin) + (addons.screens * 1.5) + (addons.lanterns * 3);
@@ -301,7 +315,12 @@
             document.getElementById('liveBreakdown').innerHTML = html;
         }
 
-        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v12', JSON.stringify(conf)); showToast("Theme Updated"); }
+        function shareSMS() {
+            const b = `Window Quote: Outside ($${document.getElementById('priceOut').innerText}) | In/Out ($${document.getElementById('priceIn').innerText}). Reply to book!`;
+            window.location.href = `sms:?body=${encodeURIComponent(b)}`;
+        }
+
+        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v14', JSON.stringify(conf)); showToast("Theme Updated"); }
 
         function renderPrices() {
             let h = "";
@@ -312,7 +331,7 @@
         function savePrices() {
             for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
             conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v12', JSON.stringify(conf));
+            localStorage.setItem('winAI_v14', JSON.stringify(conf));
             showToast("Settings Saved");
             calc();
         }
