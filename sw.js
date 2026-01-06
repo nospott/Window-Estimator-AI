@@ -5,13 +5,12 @@ const ASSETS = [
   'window-estimator-ai-logo_2.png'
 ];
 
-// Install Service Worker
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
-  );
+  console.log('Service Worker Installed');
+});
+
+self.addEventListener('fetch', (e) => {
+  e.respondWith(fetch(e.request));
 });
 
 // Activate and Clean Old Caches
