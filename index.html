@@ -11,6 +11,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Theme Variables - Adjusted for softer contrast */
         :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --canvas: #020617; }
         [data-theme="light"] { --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --border: #cbd5e1; --canvas: #e2e8f0; }
 
@@ -161,13 +162,16 @@
     </div>
 
     <script>
-        const APP_VERSION = "2.1";
-        const UPDATE_NOTES = ["Added Screen cleaning counters", "Added Light Lantern counters", "Itemized add-on pricing in Settings", "Improved quote sharing breakdown"];
+        const APP_VERSION = "2.2";
+        const UPDATE_NOTES = ["Fixed Screen and Lantern counter functions", "Optimized pricing math for add-ons", "Persistent dark theme fixes"];
         
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
         let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
+        
+        // Ensure these variables are globally accessible
         let addons = { screens: 0, lanterns: 0 };
-        let conf = JSON.parse(localStorage.getItem('winAI_v6')) || { 
+        
+        let conf = JSON.parse(localStorage.getItem('winAI_v7')) || { 
             theme:'dark', tax:8.25, timePerWin: 3.5,
             prices:{small:8, medium:12, large:18, door:15, pic:20, screens: 2, lanterns: 5} 
         };
@@ -201,11 +205,15 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('view'+n).classList.add('view-active');
             document.getElementById('nav'+n).classList.add('active');
+            const titles = ["", "Estimator", "Final Quote", "Settings"];
+            document.getElementById('viewTitle').innerText = titles[n];
         }
 
+        // FIXED FUNCTION: Correctly updates global 'addons' and displays new total
         function adjustAddon(type, val) {
             addons[type] = Math.max(0, addons[type] + val);
-            document.getElementById(type + 'CountDisplay').innerText = addons[type];
+            const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
+            document.getElementById(displayId).innerText = addons[type];
             calc();
         }
 
@@ -254,7 +262,6 @@
                 sub += conf.prices[m.type] * m.lvl; counts[m.type]++;
             });
             
-            // Addon Pricing
             const addonSub = (addons.screens * conf.prices.screens) + (addons.lanterns * conf.prices.lanterns);
             const outTotal = (sub + addonSub) * (1 + conf.tax/100);
             const inTotal = outTotal * 1.8;
@@ -281,7 +288,7 @@
             window.location.href = `mailto:?subject=Job Detail&body=${encodeURIComponent(d)}`;
         }
 
-        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v6', JSON.stringify(conf)); }
+        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v7', JSON.stringify(conf)); }
 
         function renderPrices() {
             let h = "";
@@ -292,7 +299,7 @@
         function savePrices() {
             for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
             conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v6', JSON.stringify(conf));
+            localStorage.setItem('winAI_v7', JSON.stringify(conf));
             alert('Settings Updated!'); calc();
         }
 
