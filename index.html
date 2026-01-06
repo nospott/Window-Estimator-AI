@@ -11,7 +11,10 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; font-family: sans-serif; touch-action: manipulation; background-color: #020617; }
+        :root { --bg: #020617; --card: #0f172a; --text: #f1f5f9; --border: #1e293b; }
+        [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --border: #e2e8f0; }
+
+        body { background-color: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; font-family: sans-serif; transition: background 0.3s; }
         .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10; }
         .marker-small { width: 12px; height: 12px; background: #22c55e; }
         .marker-medium { width: 18px; height: 18px; background: #3b82f6; }
@@ -19,251 +22,217 @@
         .marker-door { width: 20px; height: 30px; border-radius: 4px; background: #a855f7; }
         .marker-pic { width: 22px; height: 22px; border-radius: 4px; rotate: 45deg; background: #f59e0b; }
         
-        .btn-active { background-color: #2563eb !important; color: white !important; scale: 1.05; border-color: #60a5fa !important; }
-        .page { display: none; }
-        .page-active { display: block; }
+        .card { background-color: var(--card); border: 1px solid var(--border); }
+        .btn-active { background-color: #2563eb !important; color: white !important; }
+        .page, .view { display: none; }
+        .page-active, .view-active { display: block; }
         .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; }
-        .nav-btn.active { color: #60a5fa; border-top: 2px solid #2563eb; }
+        .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
     </style>
 </head>
-<body class="min-h-screen text-slate-100">
+<body class="min-h-screen">
 
     <div id="page0" class="page page-active">
         <div class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
             <img src="window-estimator-ai-logo_2.png" alt="Logo" class="w-20 h-20 mb-4 rounded-2xl shadow-2xl">
-            <h1 class="text-2xl font-black text-blue-400 italic uppercase tracking-tighter">Window Estimator AI</h1>
+            <h1 class="text-2xl font-black text-blue-500 italic uppercase">Window Estimator AI</h1>
             <div class="w-full max-w-xs space-y-4 mt-8">
-                <input type="text" id="licenseKey" placeholder="ENTER UNIQUE KEY" class="w-full p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center font-bold tracking-widest text-blue-400 focus:outline-none">
-                <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">Activate App</button>
-                <div class="pt-6 border-t border-slate-900">
-                    <a href="https://buy.stripe.com/cNiaEZ2Mu7o1etzczh5os00" class="inline-block bg-slate-900 px-8 py-3 rounded-full text-blue-400 font-bold text-xs uppercase tracking-widest border border-slate-800">Get Individual Key</a>
-                </div>
+                <input type="text" id="licenseKey" placeholder="ENTER KEY" class="w-full p-4 card rounded-2xl text-center font-bold text-blue-500 outline-none">
+                <button onclick="checkLicense()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest text-white">Activate</button>
+                <a href="https://buy.stripe.com/cNiaEZ2Mu7o1etzczh5os00" class="block text-xs text-blue-500 font-bold uppercase">Get Subscription Link</a>
             </div>
         </div>
     </div>
 
     <div id="appInterface" class="hidden flex flex-col min-h-screen">
-        
-        <header class="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <img src="window-estimator-ai-logo_2.png" class="w-6 h-6 rounded">
-                <h1 id="viewTitle" class="text-sm font-black italic text-blue-400 uppercase tracking-tighter">Estimator</h1>
-            </div>
-            <button onclick="logout()" class="text-[9px] font-bold text-slate-500 border border-slate-800 px-3 py-1 rounded-full uppercase">Logout</button>
+        <header class="card border-b p-4 flex justify-between items-center sticky top-0 z-50">
+            <h1 id="viewTitle" class="text-sm font-black text-blue-500 uppercase italic">Estimator</h1>
+            <button onclick="logout()" class="text-[9px] font-bold opacity-50 uppercase">Logout</button>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 pb-24">
+        <div class="flex-1 overflow-y-auto p-4 pb-28">
             
-            <div id="view1" class="view space-y-4">
-                <div id="canvasContainer" class="relative w-full aspect-video bg-black rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl">
-                    <img id="mainPhoto" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                    <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-2" onclick="document.getElementById('photoUpload').click()">
-                        <p class="text-slate-600 text-[10px] font-bold uppercase tracking-widest italic">Tap to Upload Photo</p>
+            <div id="view1" class="view view-active space-y-4">
+                <div class="flex gap-2 overflow-x-auto pb-2" id="galleryThumbs"></div>
+
+                <div id="canvasContainer" class="relative w-full aspect-video bg-black rounded-3xl overflow-hidden border-2 border-slate-800 shadow-xl">
+                    <img id="activeImg" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
+                    <div id="placeholder" class="absolute inset-0 flex items-center justify-center" onclick="document.getElementById('camUpload').click()">
+                        <p class="text-[10px] font-bold opacity-40 uppercase italic">Tap to Take/Upload Photo</p>
                     </div>
                 </div>
-                <input type="file" id="photoUpload" accept="image/*" class="hidden" onchange="handleUpload(event)">
 
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="setMode('small')" id="btn-small" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center btn-active">
-                        <span class="w-2 h-2 bg-green-500 rounded-full mb-1"></span>
-                        <span class="text-[9px] font-bold uppercase">Small</span>
-                    </button>
-                    <button onclick="setMode('medium')" id="btn-medium" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center opacity-50">
-                        <span class="w-3 h-3 bg-blue-500 rounded-full mb-1"></span>
-                        <span class="text-[9px] font-bold uppercase">Medium</span>
-                    </button>
-                    <button onclick="setMode('large')" id="btn-large" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center opacity-50">
-                        <span class="w-4 h-4 bg-red-500 rounded-full mb-1"></span>
-                        <span class="text-[9px] font-bold uppercase">Large</span>
-                    </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="document.getElementById('camUpload').click()" class="bg-blue-600 text-white p-3 rounded-xl text-[10px] font-bold uppercase">📸 Take Photo</button>
+                    <button onclick="undo()" class="card p-3 rounded-xl text-[10px] font-bold uppercase">Undo Last</button>
+                </div>
+                <input type="file" id="camUpload" accept="image/*" capture="environment" class="hidden" onchange="addImage(event)">
+
+                <div class="grid grid-cols-5 gap-1">
+                    <button onclick="setMode('small')" id="btn-small" class="card p-2 rounded-lg text-[8px] font-bold uppercase btn-active">Sm</button>
+                    <button onclick="setMode('medium')" id="btn-medium" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Md</button>
+                    <button onclick="setMode('large')" id="btn-large" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Lg</button>
+                    <button onclick="setMode('door')" id="btn-door" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Dr</button>
+                    <button onclick="setMode('pic')" id="btn-pic" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Pic</button>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="setMode('door')" id="btn-door" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center opacity-50">
-                        <span class="w-2 h-3 bg-purple-500 rounded-sm mb-1"></span>
-                        <span class="text-[9px] font-bold uppercase">Door</span>
-                    </button>
-                    <button onclick="setMode('pic')" id="btn-pic" class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex flex-col items-center opacity-50">
-                        <span class="w-3 h-3 bg-amber-500 rounded-sm rotate-45 mb-1"></span>
-                        <span class="text-[9px] font-bold uppercase">Pic/French</span>
-                    </button>
-                    <button onclick="undo()" class="bg-slate-800 p-3 rounded-xl text-[9px] font-bold uppercase text-slate-400">Undo</button>
+                <div class="flex gap-1 card p-1 rounded-xl">
+                    <button id="lvl1" onclick="setLevel(1)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase btn-active">1st</button>
+                    <button id="lvl1.5" onclick="setLevel(1.5)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase opacity-50">2nd</button>
+                    <button id="lvl2" onclick="setLevel(2)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase opacity-50">3rd</button>
                 </div>
 
-                <div class="flex gap-2 bg-slate-900 p-2 rounded-2xl border border-slate-800">
-                    <button id="lvl1" onclick="setLevel(1)" class="flex-1 py-2 rounded-xl text-[9px] font-bold uppercase btn-active">1st Floor</button>
-                    <button id="lvl2" onclick="setLevel(1.5)" class="flex-1 py-2 rounded-xl text-[9px] font-bold uppercase opacity-50">2nd (1.5x)</button>
-                    <button id="lvl3" onclick="setLevel(2)" class="flex-1 py-2 rounded-xl text-[9px] font-bold uppercase opacity-50">3rd (2x)</button>
-                </div>
-            </div>
-
-            <div id="view2" class="view hidden space-y-4">
-                <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800 space-y-4">
-                    <h3 class="text-xs font-black uppercase text-blue-400 tracking-widest">Quote Breakdown</h3>
-                    <div id="breakdownList" class="space-y-2 text-xs font-bold text-slate-400">
-                        </div>
-                    <div class="pt-4 border-t border-slate-800 space-y-1">
-                        <div class="flex justify-between text-xs font-bold"><span>Subtotal:</span><span id="subTotalDisplay">$0</span></div>
-                        <div class="flex justify-between text-xs font-bold text-slate-500"><span>Tax (<span id="taxRateLabel">0</span>%):</span><span id="taxDisplay">$0</span></div>
-                        <div class="flex justify-between text-xl font-black text-green-400 pt-2"><span>Total:</span><span id="finalTotalDisplay">$0</span></div>
+                <div class="card p-4 rounded-2xl text-[10px] space-y-2">
+                    <div id="liveBreakdown" class="space-y-1 opacity-70"></div>
+                    <div class="flex justify-between font-black text-green-500 border-t border-slate-700 pt-2 text-sm">
+                        <span>EST. TOTAL:</span><span id="liveTotal">$0</span>
                     </div>
                 </div>
             </div>
 
-            <div id="view3" class="view hidden space-y-4">
-                <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800">
-                    <h3 class="text-xs font-black uppercase text-blue-400 tracking-widest mb-4">Edit Prices</h3>
-                    <div class="space-y-3" id="settingsInputs">
-                        </div>
-                    <button onclick="saveSettings()" class="w-full mt-6 bg-blue-600 py-3 rounded-xl text-xs font-black uppercase tracking-widest">Save Changes</button>
+            <div id="view2" class="view space-y-4 text-center">
+                <div class="card p-6 rounded-3xl space-y-4">
+                    <h2 class="text-xl font-black text-green-500" id="finalPrice">$0.00</h2>
+                    <p class="text-[10px] opacity-50 uppercase font-bold italic">Prices include taxes and story premiums.</p>
                 </div>
+                <button onclick="shareSMS()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase text-xs">📱 Share Quote via Text</button>
+                <button onclick="shareEmail()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-xs">📧 Send Office Record (Email)</button>
             </div>
 
+            <div id="view3" class="view space-y-4">
+                <div class="card p-6 rounded-3xl space-y-4">
+                    <h3 class="text-xs font-bold uppercase text-blue-500">Theme</h3>
+                    <button onclick="toggleTheme()" id="themeBtn" class="w-full bg-slate-800 text-white py-3 rounded-xl text-[10px] font-black uppercase">Switch to Light Mode</button>
+                    
+                    <h3 class="text-xs font-bold uppercase text-blue-500 mt-6">Pricing</h3>
+                    <div id="priceSettings" class="space-y-3"></div>
+                    <button onclick="savePrices()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-[10px]">Save Prices</button>
+                </div>
+            </div>
         </div>
 
-        <footer class="fixed bottom-0 w-full bg-slate-900 border-t border-slate-800 flex">
+        <footer class="fixed bottom-0 w-full card border-t flex z-50">
             <button onclick="showView(1)" id="nav1" class="nav-btn active">Estimator</button>
-            <button onclick="showView(2)" id="nav2" class="nav-btn">Details</button>
+            <button onclick="showView(2)" id="nav2" class="nav-btn">Quote</button>
             <button onclick="showView(3)" id="nav3" class="nav-btn">Settings</button>
         </footer>
     </div>
 
     <script>
         const VALID_KEYS = ["PRO_CLEAN_26", "ADMIN_99"];
-        let currentMode = 'small';
-        let currentLevel = 1;
-        let markers = [];
-        
-        let config = JSON.parse(localStorage.getItem('windowAI_config')) || {
-            prices: { small: 8, medium: 12, large: 18, door: 15, pic: 20 },
-            tax: 8.25
-        };
+        let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
+        let conf = JSON.parse(localStorage.getItem('winAI_conf')) || { theme:'dark', tax:8.25, prices:{small:8, medium:12, large:18, door:15, pic:20} };
 
         function checkLicense() {
-            const key = document.getElementById('licenseKey').value.trim().toUpperCase();
-            if (VALID_KEYS.includes(key)) {
-                localStorage.setItem('windowAI_active', 'true');
-                initApp();
-            } else { alert("Invalid Key."); }
+            const k = document.getElementById('licenseKey').value.toUpperCase();
+            if(VALID_KEYS.includes(k)) { localStorage.setItem('winAI_on', '1'); init(); } else { alert('Invalid Key'); }
         }
 
-        function initApp() {
+        function init() {
             document.getElementById('page0').style.display = 'none';
             document.getElementById('appInterface').classList.remove('hidden');
-            renderSettings();
-            calculate();
+            document.body.setAttribute('data-theme', conf.theme);
+            renderPrices();
+            calc();
         }
 
-        function showView(num) {
-            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        function showView(n) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('view' + num).classList.remove('hidden');
-            document.getElementById('nav' + num).classList.add('active');
-            const titles = ["", "Estimator", "Price Details", "App Settings"];
-            document.getElementById('viewTitle').innerText = titles[num];
+            document.getElementById('view'+n).classList.add('view-active');
+            document.getElementById('nav'+n).classList.add('active');
+            document.getElementById('viewTitle').innerText = ["", "Estimator", "Share Quote", "Settings"][n];
         }
 
-        function setMode(mode) {
-            currentMode = mode;
-            ['small', 'medium', 'large', 'door', 'pic'].forEach(m => {
-                const btn = document.getElementById('btn-' + m);
-                if(btn) {
-                    btn.classList.toggle('btn-active', m === mode);
-                    btn.classList.toggle('opacity-50', m !== mode);
-                }
-            });
+        function addImage(e) {
+            if(photos.length >= 20) return alert("Max 20 photos reached.");
+            const reader = new FileReader();
+            reader.onload = (f) => {
+                photos.push(f.target.result);
+                activePhotoIdx = photos.length - 1;
+                updateGallery();
+            };
+            reader.readAsDataURL(e.target.files[0]);
         }
 
-        function setLevel(val) {
-            currentLevel = val;
-            [1, 1.5, 2].forEach(l => {
-                const id = l === 1 ? 'lvl1' : l === 1.5 ? 'lvl2' : 'lvl3';
-                document.getElementById(id).classList.toggle('btn-active', l === val);
-                document.getElementById(id).classList.toggle('opacity-50', l !== val);
-            });
+        function updateGallery() {
+            const container = document.getElementById('galleryThumbs');
+            container.innerHTML = photos.map((p, i) => `<img src="${p}" onclick="selectPhoto(${i})" class="w-12 h-12 object-cover rounded-lg border-2 ${i===activePhotoIdx?'border-blue-500':'border-transparent'}">`).join('');
+            const img = document.getElementById('activeImg');
+            img.src = photos[activePhotoIdx];
+            img.classList.remove('hidden');
+            document.getElementById('placeholder').style.display = 'none';
         }
 
-        function handleUpload(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const img = document.getElementById('mainPhoto');
-                    img.src = event.target.result;
-                    img.classList.remove('hidden');
-                    document.getElementById('placeholder').style.display = 'none';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+        function selectPhoto(i) { activePhotoIdx = i; updateGallery(); }
+
+        function setMode(m) { curMode = m; document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.toggle('btn-active', b.id==='btn-'+m)); document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.toggle('opacity-50', b.id!=='btn-'+m)); }
+        function setLevel(l) { curLvl = l; [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('btn-active', v===l)); [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('opacity-50', v!==l)); }
 
         function placeMarker(e) {
-            const rect = e.target.getBoundingClientRect();
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
-            markers.push({ x, y, type: currentMode, level: currentLevel });
-            calculate();
+            const r = e.target.getBoundingClientRect();
+            markers.push({ x:((e.clientX-r.left)/r.width)*100, y:((e.clientY-r.top)/r.height)*100, type:curMode, lvl:curLvl, photoIdx:activePhotoIdx });
+            calc();
         }
 
-        function calculate() {
-            const container = document.getElementById('canvasContainer');
+        function calc() {
             document.querySelectorAll('.marker').forEach(m => m.remove());
-            
-            let subtotal = 0;
-            let counts = { small: 0, medium: 0, large: 0, door: 0, pic: 0 };
-
-            markers.forEach((m) => {
-                const div = document.createElement('div');
-                div.className = `marker marker-${m.type}`;
-                div.style.left = m.x + '%';
-                div.style.top = m.y + '%';
-                container.appendChild(div);
-                
-                const itemPrice = config.prices[m.type] * m.level;
-                subtotal += itemPrice;
+            let sub = 0, counts = {small:0, medium:0, large:0, door:0, pic:0};
+            markers.forEach(m => {
+                if(m.photoIdx === activePhotoIdx) {
+                    const d = document.createElement('div');
+                    d.className = `marker marker-${m.type}`;
+                    d.style.left = m.x+'%'; d.style.top = m.y+'%';
+                    document.getElementById('canvasContainer').appendChild(d);
+                }
+                sub += conf.prices[m.type] * m.lvl;
                 counts[m.type]++;
             });
-
-            const taxAmount = subtotal * (config.tax / 100);
-            const total = subtotal + taxAmount;
-
-            // Update Details View
+            const tot = sub * (1 + conf.tax/100);
             let html = "";
-            for (let type in counts) {
-                if (counts[type] > 0) {
-                    html += `<div class="flex justify-between uppercase"><span>${type} Items (x${counts[type]})</span><span>$${counts[type] * config.prices[type]}</span></div>`;
-                }
-            }
-            document.getElementById('breakdownList').innerHTML = html || "No items counted yet.";
-            document.getElementById('subTotalDisplay').innerText = `$${subtotal.toFixed(2)}`;
-            document.getElementById('taxRateLabel').innerText = config.tax;
-            document.getElementById('taxDisplay').innerText = `$${taxAmount.toFixed(2)}`;
-            document.getElementById('finalTotalDisplay').innerText = `$${total.toFixed(2)}`;
+            for(let t in counts) if(counts[t]>0) html += `<div class="flex justify-between uppercase"><span>${t} Items (x${counts[t]})</span><span>$${(counts[t]*conf.prices[t]).toFixed(2)}</span></div>`;
+            document.getElementById('liveBreakdown').innerHTML = html;
+            document.getElementById('liveTotal').innerText = '$'+tot.toFixed(2);
+            document.getElementById('finalPrice').innerText = '$'+tot.toFixed(2);
         }
 
-        function renderSettings() {
-            let html = "";
-            for (let p in config.prices) {
-                html += `<div><label class="text-[9px] uppercase font-bold text-slate-500">${p} Price ($)</label>
-                         <input type="number" id="set-${p}" value="${config.prices[p]}" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-800 text-blue-400 font-bold mt-1"></div>`;
-            }
-            html += `<div><label class="text-[9px] uppercase font-bold text-slate-500">Tax Rate (%)</label>
-                     <input type="number" id="set-tax" value="${config.tax}" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-800 text-green-400 font-bold mt-1"></div>`;
-            document.getElementById('settingsInputs').innerHTML = html;
+        function shareSMS() {
+            const body = `Window Cleaning Quote: ${document.getElementById('finalPrice').innerText}. This price includes all ${markers.length} items counted. Reply to schedule!`;
+            window.location.href = `sms:?body=${encodeURIComponent(body)}`;
         }
 
-        function saveSettings() {
-            for (let p in config.prices) { config.prices[p] = parseFloat(document.getElementById('set-' + p).value); }
-            config.tax = parseFloat(document.getElementById('set-tax').value);
-            localStorage.setItem('windowAI_config', JSON.stringify(config));
-            calculate();
-            alert("Settings Saved!");
+        function shareEmail() {
+            let detail = "OFFICE RECORD - WINDOW ESTIMATOR AI\n\n";
+            detail += `Total Price: ${document.getElementById('finalPrice').innerText}\n`;
+            detail += `Total Items: ${markers.length}\n\nBREAKDOWN:\n`;
+            const counts = markers.reduce((a,c) => { a[c.type] = (a[c.type]||0)+1; return a; }, {});
+            for(let t in counts) detail += `- ${t.toUpperCase()}: ${counts[t]} units @ $${conf.prices[t]}/ea\n`;
+            detail += `\nTax Rate: ${conf.tax}%\nPhotos Taken: ${photos.length}`;
+            window.location.href = `mailto:?subject=Window Quote Record&body=${encodeURIComponent(detail)}`;
         }
 
-        function undo() { markers.pop(); calculate(); }
-        function logout() { localStorage.removeItem('windowAI_active'); location.reload(); }
+        function toggleTheme() {
+            conf.theme = conf.theme==='dark'?'light':'dark';
+            document.body.setAttribute('data-theme', conf.theme);
+            document.getElementById('themeBtn').innerText = `Switch to ${conf.theme==='dark'?'Light':'Dark'} Mode`;
+            localStorage.setItem('winAI_conf', JSON.stringify(conf));
+        }
 
-        if (localStorage.getItem('windowAI_active') === 'true') { initApp(); }
+        function renderPrices() {
+            let h = "";
+            for(let p in conf.prices) h += `<div><label class="text-[8px] uppercase font-bold opacity-50">${p}</label><input type="number" id="p-${p}" value="${conf.prices[p]}" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1"></div>`;
+            document.getElementById('priceSettings').innerHTML = h;
+        }
+
+        function savePrices() {
+            for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
+            localStorage.setItem('winAI_conf', JSON.stringify(conf));
+            alert('Prices Saved!'); calc();
+        }
+
+        function undo() { markers.pop(); calc(); }
+        function logout() { localStorage.removeItem('winAI_on'); location.reload(); }
+        if(localStorage.getItem('winAI_on') === '1') init();
     </script>
 </body>
 </html>
