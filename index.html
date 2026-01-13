@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Window Estimator AI</title>
-    
+
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="window-estimator-ai-logo_2.png">
     <meta name="theme-color" content="#0f172a">
@@ -21,10 +21,10 @@
         .marker-large { width: 24px; height: 24px; background: #ef4444; }
         .marker-door { width: 20px; height: 30px; border-radius: 4px; background: #a855f7; }
         .marker-pic { width: 22px; height: 22px; border-radius: 4px; rotate: 45deg; background: #f59e0b; }
-        
+
         .card { background-color: var(--card); border: 1px solid var(--border); color: var(--text); }
         .canvas-area { background-color: var(--canvas); border: 2px solid var(--border); }
-        
+
         .btn-active { background-color: #2563eb !important; color: white !important; opacity: 1 !important; }
         .page, .view { display: none; }
         .page-active, .view-active { display: block; }
@@ -36,7 +36,7 @@
         #toast.show { opacity: 1; margin-top: 0; }
 
         #updateModal, #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
-        
+
         [data-theme="light"] .minus-btn { background-color: #e2e8f0 !important; color: #0f172a !important; }
         [data-theme="light"] .card { color: #0f172a !important; }
 
@@ -57,8 +57,7 @@
             <div id="modalIcon" class="text-3xl">⚠️</div>
             <h2 id="modalTitle" class="text-xs font-black uppercase tracking-widest"></h2>
             <p id="modalBody" class="text-[10px] opacity-60 font-bold uppercase"></p>
-            <div id="modalButtons" class="grid grid-cols-2 gap-3">
-                </div>
+            <div id="modalButtons" class="grid grid-cols-2 gap-3"></div>
         </div>
     </div>
 
@@ -92,7 +91,7 @@
                     <button onclick="triggerCamera()" class="bg-blue-600 text-white p-3 rounded-xl text-[10px] font-bold uppercase shadow-lg">📸 Camera</button>
                     <button onclick="triggerGallery()" class="card text-blue-500 p-3 rounded-xl text-[10px] font-bold uppercase shadow-sm">📁 Gallery</button>
                 </div>
-                
+
                 <input type="file" id="camInput" accept="image/*" capture="environment" class="hidden" onchange="addImage(event)">
                 <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="addImage(event)">
 
@@ -137,7 +136,7 @@
                 </div>
                 <button onclick="appConfirm('Clear Job?', 'Delete all photos and counts?', resetJobLogic)" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
             </div>
-            
+
             <div id="view2" class="view space-y-4">
                 <div class="grid grid-cols-1 gap-3">
                     <div class="card p-5 rounded-3xl border-l-4 border-blue-500 shadow-md">
@@ -176,7 +175,7 @@
     <script>
         const APP_VERSION = "3.1";
         const UPDATE_NOTES = ["Fixed 'nospott' browser alert URL popup", "Screen and Lantern counters now update correctly", "Professional light mode visibility fixes"];
-        
+
         let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
         let addons = { screens: 0, lanterns: 0 };
         let currentModalCallback = null;
@@ -230,7 +229,7 @@
             document.getElementById('appInterface').classList.remove('hidden');
             document.body.setAttribute('data-theme', conf.theme);
             document.getElementById('laborTime').value = conf.timePerWin;
-            
+
             const savedJob = JSON.parse(localStorage.getItem('winAI_current_job'));
             if(savedJob) {
                 markers = savedJob.markers || [];
@@ -255,7 +254,7 @@
         function persist() { localStorage.setItem('winAI_current_job', JSON.stringify({ markers, addons, photos })); }
         function triggerCamera() { document.getElementById('camInput').click(); }
         function triggerGallery() { document.getElementById('galleryInput').click(); }
-        
+
         function showView(n) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -282,76 +281,71 @@
 
         function selectPhoto(i) { activePhotoIdx = i; updateGallery(); }
 
-        // ✅ UPDATED: DR locks 2nd & 3rd (shaded + not clickable), 2nd behaves same as 3rd
+        // ✅ FIXED: DR locks 2nd & 3rd + Doors ALWAYS use 1st level
         function setMode(m) {
-  curMode = m;
+            curMode = m;
 
-  // Highlight active marker button (Sm/Md/Lg/Dr/Pic)
-  document.querySelectorAll('[id^=btn-]').forEach(b =>
-    b.classList.toggle('btn-active', b.id === 'btn-' + m)
-  );
+            // highlight active marker buttons
+            document.querySelectorAll('[id^=btn-]').forEach(b =>
+                b.classList.toggle('btn-active', b.id === 'btn-' + m)
+            );
 
-  const btn1st = document.getElementById('lvl1');     // 1st
-  const btn2nd = document.getElementById('lvl1.5');   // 2nd
-  const btn3rd = document.getElementById('lvl2');     // 3rd
+            const btn1st = document.getElementById('lvl1');
+            const btn2nd = document.getElementById('lvl1.5');
+            const btn3rd = document.getElementById('lvl2');
 
-  const isDoor = (m === 'door');
+            const isDoor = (m === 'door');
 
-  if (isDoor) {
-    // FORCE 1st level for doors
-    curLvl = 1;
+            if (isDoor) {
+                // FORCE 1st
+                curLvl = 1;
 
-    // Set 1st active visually
-    btn1st.classList.add('btn-active');
-    btn2nd.classList.remove('btn-active');
-    btn3rd.classList.remove('btn-active');
+                // set visual active to 1st
+                btn1st.classList.add('btn-active');
+                btn2nd.classList.remove('btn-active');
+                btn3rd.classList.remove('btn-active');
 
-    // Disable + shade 2nd & 3rd
-    btn2nd.classList.add('disabled-floor');
-    btn3rd.classList.add('disabled-floor');
-  } else {
-    // Re-enable 2nd & 3rd for other marker types
-    btn2nd.classList.remove('disabled-floor');
-    btn3rd.classList.remove('disabled-floor');
-  }
-}
+                // disable 2nd/3rd
+                btn2nd.classList.add('disabled-floor');
+                btn3rd.classList.add('disabled-floor');
+            } else {
+                // re-enable 2nd/3rd
+                btn2nd.classList.remove('disabled-floor');
+                btn3rd.classList.remove('disabled-floor');
+            }
+        }
 
-function setLevel(l) {
-  // ✅ HARD BLOCK: If Dr mode is active, only allow 1st
-  if (curMode === 'door' && l !== 1) return;
+        function setLevel(l) {
+            // HARD BLOCK: if DR, only allow 1st
+            if (curMode === 'door' && l !== 1) return;
 
-  const btn = document.getElementById('lvl' + l);
+            const btn = document.getElementById('lvl' + l);
+            if (btn && btn.classList.contains('disabled-floor')) return;
 
-  // Block clicks if disabled (extra safety)
-  if (btn && btn.classList.contains('disabled-floor')) return;
+            curLvl = l;
+            [1, 1.5, 2].forEach(v => {
+                const el = document.getElementById('lvl' + v);
+                if (!el) return;
+                el.classList.toggle('btn-active', v === l);
+            });
+        }
 
-  curLvl = l;
+        function placeMarker(e) {
+            const r = e.target.getBoundingClientRect();
 
-  // Update active state
-  [1, 1.5, 2].forEach(v => {
-    const el = document.getElementById('lvl' + v);
-    if (!el) return;
-    el.classList.toggle('btn-active', v === l);
-  });
-}
+            // HARD FORCE: doors always lvl 1
+            const lvlToUse = (curMode === 'door') ? 1 : curLvl;
 
-function placeMarker(e) {
-  const r = e.target.getBoundingClientRect();
+            markers.push({
+                x: ((e.clientX - r.left) / r.width) * 100,
+                y: ((e.clientY - r.top) / r.height) * 100,
+                type: curMode,
+                lvl: lvlToUse,
+                photoIdx: activePhotoIdx
+            });
 
-  // ✅ HARD FORCE: Doors ALWAYS place at 1st level
-  const lvlToUse = (curMode === 'door') ? 1 : curLvl;
-
-  markers.push({
-    x: ((e.clientX - r.left) / r.width) * 100,
-    y: ((e.clientY - r.top) / r.height) * 100,
-    type: curMode,
-    lvl: lvlToUse,
-    photoIdx: activePhotoIdx
-  });
-
-  calc();
-  persist();
-}
+            calc(); persist();
+        }
 
         function calc() {
             document.querySelectorAll('.marker').forEach(m => m.remove());
@@ -398,6 +392,10 @@ function placeMarker(e) {
             showToast("Settings Saved");
             calc();
         }
+
+        // NOTE: your original app references these; keep if you already have them elsewhere
+        function exportCSV() { alert("Export CSV not implemented in this file."); }
+        function logout() { alert("Logout not implemented in this file."); }
 
         init();
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
