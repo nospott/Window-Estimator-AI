@@ -39,6 +39,13 @@
         
         [data-theme="light"] .minus-btn { background-color: #e2e8f0 !important; color: #0f172a !important; }
         [data-theme="light"] .card { color: #0f172a !important; }
+
+        /* ✅ NEW: Disable + shade floor buttons (2nd & 3rd) when DR is active */
+        .disabled-floor {
+            opacity: 0.35 !important;
+            pointer-events: none !important;
+            filter: grayscale(60%);
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -275,14 +282,41 @@
 
         function selectPhoto(i) { activePhotoIdx = i; updateGallery(); }
 
+        // ✅ UPDATED: DR locks 2nd & 3rd (shaded + not clickable), 2nd behaves same as 3rd
         function setMode(m) { 
             curMode = m; 
             document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.toggle('btn-active', b.id==='btn-'+m)); 
-            if (m === 'door') { setLevel(1); document.getElementById('lvl1.5').classList.add('disabled-floor'); document.getElementById('lvl2').classList.add('disabled-floor'); }
-            else { document.getElementById('lvl1.5').classList.remove('disabled-floor'); document.getElementById('lvl2').classList.remove('disabled-floor'); }
+
+            const btn2nd = document.getElementById('lvl1.5'); // 2nd
+            const btn3rd = document.getElementById('lvl2');   // 3rd
+            const isDoor = (m === 'door');
+
+            if (isDoor) {
+                // Force 1st floor when DR is active
+                setLevel(1);
+
+                // Disable + shade 2nd and 3rd
+                btn2nd.classList.add('disabled-floor');
+                btn3rd.classList.add('disabled-floor');
+
+                // Ensure disabled buttons are not active
+                btn2nd.classList.remove('btn-active');
+                btn3rd.classList.remove('btn-active');
+            } else {
+                // Re-enable 2nd and 3rd
+                btn2nd.classList.remove('disabled-floor');
+                btn3rd.classList.remove('disabled-floor');
+            }
         }
 
-        function setLevel(l) { curLvl = l; [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('btn-active', v===l)); }
+        // ✅ UPDATED: prevents selecting disabled floors
+        function setLevel(l) { 
+            const btn = document.getElementById('lvl' + l);
+            if (btn && btn.classList.contains('disabled-floor')) return;
+
+            curLvl = l; 
+            [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('btn-active', v===l)); 
+        }
 
         function placeMarker(e) {
             const r = e.target.getBoundingClientRect();
