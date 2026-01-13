@@ -283,46 +283,75 @@
         function selectPhoto(i) { activePhotoIdx = i; updateGallery(); }
 
         // ✅ UPDATED: DR locks 2nd & 3rd (shaded + not clickable), 2nd behaves same as 3rd
-        function setMode(m) { 
-            curMode = m; 
-            document.querySelectorAll('[id^=btn-]').forEach(b => b.classList.toggle('btn-active', b.id==='btn-'+m)); 
+        function setMode(m) {
+  curMode = m;
 
-            const btn2nd = document.getElementById('lvl1.5'); // 2nd
-            const btn3rd = document.getElementById('lvl2');   // 3rd
-            const isDoor = (m === 'door');
+  // Highlight active marker button (Sm/Md/Lg/Dr/Pic)
+  document.querySelectorAll('[id^=btn-]').forEach(b =>
+    b.classList.toggle('btn-active', b.id === 'btn-' + m)
+  );
 
-            if (isDoor) {
-                // Force 1st floor when DR is active
-                setLevel(1);
+  const btn1st = document.getElementById('lvl1');     // 1st
+  const btn2nd = document.getElementById('lvl1.5');   // 2nd
+  const btn3rd = document.getElementById('lvl2');     // 3rd
 
-                // Disable + shade 2nd and 3rd
-                btn2nd.classList.add('disabled-floor');
-                btn3rd.classList.add('disabled-floor');
+  const isDoor = (m === 'door');
 
-                // Ensure disabled buttons are not active
-                btn2nd.classList.remove('btn-active');
-                btn3rd.classList.remove('btn-active');
-            } else {
-                // Re-enable 2nd and 3rd
-                btn2nd.classList.remove('disabled-floor');
-                btn3rd.classList.remove('disabled-floor');
-            }
-        }
+  if (isDoor) {
+    // FORCE 1st level for doors
+    curLvl = 1;
 
-        // ✅ UPDATED: prevents selecting disabled floors
-        function setLevel(l) { 
-            const btn = document.getElementById('lvl' + l);
-            if (btn && btn.classList.contains('disabled-floor')) return;
+    // Set 1st active visually
+    btn1st.classList.add('btn-active');
+    btn2nd.classList.remove('btn-active');
+    btn3rd.classList.remove('btn-active');
 
-            curLvl = l; 
-            [1, 1.5, 2].forEach(v => document.getElementById('lvl'+v).classList.toggle('btn-active', v===l)); 
-        }
+    // Disable + shade 2nd & 3rd
+    btn2nd.classList.add('disabled-floor');
+    btn3rd.classList.add('disabled-floor');
+  } else {
+    // Re-enable 2nd & 3rd for other marker types
+    btn2nd.classList.remove('disabled-floor');
+    btn3rd.classList.remove('disabled-floor');
+  }
+}
 
-        function placeMarker(e) {
-            const r = e.target.getBoundingClientRect();
-            markers.push({ x:((e.clientX-r.left)/r.width)*100, y:((e.clientY-r.top)/r.height)*100, type:curMode, lvl:curLvl, photoIdx:activePhotoIdx });
-            calc(); persist();
-        }
+function setLevel(l) {
+  // ✅ HARD BLOCK: If Dr mode is active, only allow 1st
+  if (curMode === 'door' && l !== 1) return;
+
+  const btn = document.getElementById('lvl' + l);
+
+  // Block clicks if disabled (extra safety)
+  if (btn && btn.classList.contains('disabled-floor')) return;
+
+  curLvl = l;
+
+  // Update active state
+  [1, 1.5, 2].forEach(v => {
+    const el = document.getElementById('lvl' + v);
+    if (!el) return;
+    el.classList.toggle('btn-active', v === l);
+  });
+}
+
+function placeMarker(e) {
+  const r = e.target.getBoundingClientRect();
+
+  // ✅ HARD FORCE: Doors ALWAYS place at 1st level
+  const lvlToUse = (curMode === 'door') ? 1 : curLvl;
+
+  markers.push({
+    x: ((e.clientX - r.left) / r.width) * 100,
+    y: ((e.clientY - r.top) / r.height) * 100,
+    type: curMode,
+    lvl: lvlToUse,
+    photoIdx: activePhotoIdx
+  });
+
+  calc();
+  persist();
+}
 
         function calc() {
             document.querySelectorAll('.marker').forEach(m => m.remove());
