@@ -1,404 +1,435 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Window Estimator AI</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Window Estimator AI</title>
 
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="window-estimator-ai-logo_2.png">
-    <meta name="theme-color" content="#0f172a">
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="window-estimator-ai-logo_2.png" />
+  <meta name="theme-color" content="#0f172a" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --canvas: #020617; }
-        [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --border: #cbd5e1; --canvas: #f1f5f9; }
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        body { background-color: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; font-family: sans-serif; transition: background 0.3s; padding-bottom: 70px; }
-        .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10; }
-        .marker-small { width: 12px; height: 12px; background: #22c55e; }
-        .marker-medium { width: 18px; height: 18px; background: #3b82f6; }
-        .marker-large { width: 24px; height: 24px; background: #ef4444; }
-        .marker-door { width: 20px; height: 30px; border-radius: 4px; background: #a855f7; }
-        .marker-pic { width: 22px; height: 22px; border-radius: 4px; rotate: 45deg; background: #f59e0b; }
+  <style>
+    :root { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: #334155; --canvas: #020617; }
+    [data-theme="light"] { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --border: #cbd5e1; --canvas: #f1f5f9; }
 
-        .card { background-color: var(--card); border: 1px solid var(--border); color: var(--text); }
-        .canvas-area { background-color: var(--canvas); border: 2px solid var(--border); }
+    body { background-color: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; font-family: sans-serif; transition: background 0.3s; padding-bottom: 70px; }
+    .marker { position: absolute; border: 2px solid white; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); z-index: 10; }
+    .marker-small { width: 12px; height: 12px; background: #22c55e; }
+    .marker-medium { width: 18px; height: 18px; background: #3b82f6; }
+    .marker-large { width: 24px; height: 24px; background: #ef4444; }
+    .marker-door { width: 20px; height: 30px; border-radius: 4px; background: #a855f7; }
+    .marker-pic { width: 22px; height: 22px; border-radius: 4px; rotate: 45deg; background: #f59e0b; }
 
-        .btn-active { background-color: #2563eb !important; color: white !important; opacity: 1 !important; }
-        .page, .view { display: none; }
-        .page-active, .view-active { display: block; }
-        .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b; }
-        .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
+    .card { background-color: var(--card); border: 1px solid var(--border); color: var(--text); }
+    .canvas-area { background-color: var(--canvas); border: 2px solid var(--border); }
 
-        /* Custom Modals & Toasts */
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 12px 24px; border-radius: 50px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 10001; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; margin-top: -100px; pointer-events: none; }
-        #toast.show { opacity: 1; margin-top: 0; }
+    .btn-active { background-color: #2563eb !important; color: white !important; opacity: 1 !important; }
+    .page, .view { display: none; }
+    .page-active, .view-active { display: block; }
+    .nav-btn { flex: 1; padding: 12px; text-align: center; font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b; }
+    .nav-btn.active { color: #2563eb; border-top: 2px solid #2563eb; }
 
-        #updateModal, #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
+    /* Custom Modals & Toasts */
+    #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2563eb; color: white; padding: 12px 24px; border-radius: 50px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 10001; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; margin-top: -100px; pointer-events: none; }
+    #toast.show { opacity: 1; margin-top: 0; }
 
-        [data-theme="light"] .minus-btn { background-color: #e2e8f0 !important; color: #0f172a !important; }
-        [data-theme="light"] .card { color: #0f172a !important; }
+    #updateModal, #customModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10002; align-items: center; justify-content: center; padding: 20px; }
 
-        /* ✅ NEW: Disable + shade floor buttons (2nd & 3rd) when DR is active */
-        .disabled-floor {
-            opacity: 0.35 !important;
-            pointer-events: none !important;
-            filter: grayscale(60%);
-        }
-    </style>
+    [data-theme="light"] .minus-btn { background-color: #e2e8f0 !important; color: #0f172a !important; }
+    [data-theme="light"] .card { color: #0f172a !important; }
+
+    /* ✅ NEW: Disable + shade floor buttons (2nd & 3rd) when DR is active */
+    .disabled-floor {
+      opacity: 0.35 !important;
+      pointer-events: none !important;
+      filter: grayscale(60%);
+    }
+  </style>
 </head>
+
 <body class="min-h-screen">
 
-    <div id="toast">Settings Updated</div>
+  <div id="toast">Settings Updated</div>
 
-    <div id="customModal">
-        <div class="card p-8 rounded-3xl w-full max-w-xs space-y-6 text-center shadow-2xl">
-            <div id="modalIcon" class="text-3xl">⚠️</div>
-            <h2 id="modalTitle" class="text-xs font-black uppercase tracking-widest"></h2>
-            <p id="modalBody" class="text-[10px] opacity-60 font-bold uppercase"></p>
-            <div id="modalButtons" class="grid grid-cols-2 gap-3"></div>
-        </div>
+  <div id="customModal">
+    <div class="card p-8 rounded-3xl w-full max-w-xs space-y-6 text-center shadow-2xl">
+      <div id="modalIcon" class="text-3xl">⚠️</div>
+      <h2 id="modalTitle" class="text-xs font-black uppercase tracking-widest"></h2>
+      <p id="modalBody" class="text-[10px] opacity-60 font-bold uppercase"></p>
+      <div id="modalButtons" class="grid grid-cols-2 gap-3"></div>
     </div>
+  </div>
 
-    <div id="updateModal">
-        <div class="card p-6 rounded-3xl w-full max-w-xs space-y-4 text-center shadow-2xl">
-            <div class="text-blue-400 text-3xl">🚀</div>
-            <h2 class="text-lg font-black uppercase">App Updated!</h2>
-            <div id="updateNotes" class="text-[10px] text-slate-400 font-bold uppercase space-y-2 text-left bg-black/20 p-3 rounded-xl"></div>
-            <button onclick="closeUpdateModal()" class="w-full bg-blue-600 py-3 rounded-xl font-black uppercase text-xs text-white">Got it!</button>
-        </div>
+  <div id="updateModal">
+    <div class="card p-6 rounded-3xl w-full max-w-xs space-y-4 text-center shadow-2xl">
+      <div class="text-blue-400 text-3xl">🚀</div>
+      <h2 class="text-lg font-black uppercase">App Updated!</h2>
+      <div id="updateNotes" class="text-[10px] text-slate-400 font-bold uppercase space-y-2 text-left bg-black/20 p-3 rounded-xl"></div>
+      <button onclick="closeUpdateModal()" class="w-full bg-blue-600 py-3 rounded-xl font-black uppercase text-xs text-white">Got it!</button>
     </div>
+  </div>
 
-    <div id="appInterface" class="hidden flex flex-col min-h-screen">
-        <header class="card border-b p-4 flex justify-between items-center sticky top-0 z-50">
-            <h1 id="viewTitle" class="text-sm font-black text-blue-500 uppercase italic">Estimator</h1>
-            <button onclick="logout()" class="text-[9px] font-bold opacity-50 uppercase">Logout</button>
-        </header>
+  <div id="appInterface" class="hidden flex flex-col min-h-screen">
+    <header class="card border-b p-4 flex justify-between items-center sticky top-0 z-50">
+      <h1 id="viewTitle" class="text-sm font-black text-blue-500 uppercase italic">Estimator</h1>
+      <button onclick="logout()" class="text-[9px] font-bold opacity-50 uppercase">Logout</button>
+    </header>
 
-        <div class="flex-1 overflow-y-auto p-4">
-            <div id="view1" class="view view-active space-y-4">
-                <div class="flex gap-2 overflow-x-auto pb-2" id="galleryThumbs"></div>
-                <div id="canvasContainer" class="relative w-full aspect-video rounded-3xl overflow-hidden shadow-xl canvas-area">
-                    <img id="activeImg" class="w-full h-full object-contain hidden" onclick="placeMarker(event)">
-                    <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-2" onclick="triggerCamera()">
-                        <div class="text-blue-500 text-3xl opacity-40">📸</div>
-                        <p class="text-[10px] font-bold opacity-60 uppercase italic">Tap for Camera</p>
-                    </div>
-                </div>
+    <div class="flex-1 overflow-y-auto p-4">
+      <div id="view1" class="view view-active space-y-4">
+        <div class="flex gap-2 overflow-x-auto pb-2" id="galleryThumbs"></div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="triggerCamera()" class="bg-blue-600 text-white p-3 rounded-xl text-[10px] font-bold uppercase shadow-lg">📸 Camera</button>
-                    <button onclick="triggerGallery()" class="card text-blue-500 p-3 rounded-xl text-[10px] font-bold uppercase shadow-sm">📁 Gallery</button>
-                </div>
-
-                <input type="file" id="camInput" accept="image/*" capture="environment" class="hidden" onchange="addImage(event)">
-                <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="addImage(event)">
-
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="card p-3 rounded-2xl flex items-center justify-between">
-                        <span class="text-[9px] font-black uppercase opacity-50">Screens</span>
-                        <div class="flex items-center gap-3">
-                            <button onclick="adjustAddon('screens', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
-                            <span id="screenCountDisplay" class="text-xs font-black text-blue-500">0</span>
-                            <button onclick="adjustAddon('screens', 1)" class="w-8 h-8 bg-blue-600 text-white rounded-lg font-black">+</button>
-                        </div>
-                    </div>
-                    <div class="card p-3 rounded-2xl flex items-center justify-between">
-                        <span class="text-[9px] font-black uppercase opacity-50">Lanterns</span>
-                        <div class="flex items-center gap-3">
-                            <button onclick="adjustAddon('lanterns', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
-                            <span id="lanternCountDisplay" class="text-xs font-black text-amber-400">0</span>
-                            <button onclick="adjustAddon('lanterns', 1)" class="w-8 h-8 bg-amber-500 text-white rounded-lg font-black">+</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-5 gap-1 pt-2">
-                    <button onclick="setMode('small')" id="btn-small" class="card p-2 rounded-lg text-[8px] font-bold uppercase btn-active">Sm</button>
-                    <button onclick="setMode('medium')" id="btn-medium" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Md</button>
-                    <button onclick="setMode('large')" id="btn-large" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Lg</button>
-                    <button onclick="setMode('door')" id="btn-door" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Dr</button>
-                    <button onclick="setMode('pic')" id="btn-pic" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Pic</button>
-                </div>
-
-                <div class="flex gap-1 card p-1 rounded-xl">
-                    <button id="lvl1" onclick="setLevel(1)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase btn-active">1st</button>
-                    <button id="lvl1.5" onclick="setLevel(1.5)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase opacity-50">2nd</button>
-                    <button id="lvl2" onclick="setLevel(2)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase opacity-50">3rd</button>
-                </div>
-
-                <div class="card p-4 rounded-2xl text-[10px] space-y-2">
-                    <div id="liveBreakdown" class="space-y-1 opacity-70"></div>
-                    <div class="flex justify-between font-black text-blue-500 border-t border-slate-700/30 pt-2 text-xs">
-                        <span>EST. TIME:</span><span id="estTime">0 min</span>
-                    </div>
-                </div>
-                <button onclick="appConfirm('Clear Job?', 'Delete all photos and counts?', resetJobLogic)" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
-            </div>
-
-            <div id="view2" class="view space-y-4">
-                <div class="grid grid-cols-1 gap-3">
-                    <div class="card p-5 rounded-3xl border-l-4 border-blue-500 shadow-md">
-                        <p class="text-[9px] font-bold uppercase opacity-50 mb-1">In & Out Service</p>
-                        <h2 class="text-2xl font-black text-blue-500" id="priceIn"></h2>
-                    </div>
-                    <div class="card p-5 rounded-3xl border-l-4 border-green-500 shadow-md">
-                        <p class="text-[9px] font-bold uppercase opacity-50 mb-1">Outside Only</p>
-                        <h2 class="text-2xl font-black text-green-500" id="priceOut"></h2>
-                    </div>
-                </div>
-                <button onclick="shareSMS()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg">📱 Share Text Quote</button>
-            </div>
-
-            <div id="view3" class="view space-y-4">
-                <div class="card p-6 rounded-3xl space-y-4 shadow-sm">
-                    <button onclick="toggleTheme()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Toggle Theme</button>
-                    <button onclick="exportCSV()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase text-green-500">Export CSV</button>
-                    <div class="space-y-3" id="priceSettings"></div>
-                    <div>
-                        <label class="text-[8px] uppercase font-bold opacity-50">Mins/Window</label>
-                        <input type="number" id="laborTime" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1 outline-none">
-                    </div>
-                    <button onclick="savePrices()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Save Settings</button>
-                </div>
-            </div>
+        <div id="canvasContainer" class="relative w-full aspect-video rounded-3xl overflow-hidden shadow-xl canvas-area">
+          <img id="activeImg" class="w-full h-full object-contain hidden" onclick="placeMarker(event)" />
+          <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-2" onclick="triggerCamera()">
+            <div class="text-blue-500 text-3xl opacity-40">📸</div>
+            <p class="text-[10px] font-bold opacity-60 uppercase italic">Tap for Camera</p>
+          </div>
         </div>
 
-        <footer class="fixed bottom-0 w-full card border-t flex z-50">
-            <button onclick="showView(1)" id="nav1" class="nav-btn active">Estimate</button>
-            <button onclick="showView(2)" id="nav2" class="nav-btn">Quote</button>
-            <button onclick="showView(3)" id="nav3" class="nav-btn">Settings</button>
-        </footer>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="triggerCamera()" class="bg-blue-600 text-white p-3 rounded-xl text-[10px] font-bold uppercase shadow-lg">📸 Camera</button>
+          <button onclick="triggerGallery()" class="card text-blue-500 p-3 rounded-xl text-[10px] font-bold uppercase shadow-sm">📁 Gallery</button>
+        </div>
+
+        <input type="file" id="camInput" accept="image/*" capture="environment" class="hidden" onchange="addImage(event)" />
+        <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="addImage(event)" />
+
+        <div class="grid grid-cols-2 gap-2">
+          <div class="card p-3 rounded-2xl flex items-center justify-between">
+            <span class="text-[9px] font-black uppercase opacity-50">Screens</span>
+            <div class="flex items-center gap-3">
+              <button onclick="adjustAddon('screens', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
+              <span id="screenCountDisplay" class="text-xs font-black text-blue-500">0</span>
+              <button onclick="adjustAddon('screens', 1)" class="w-8 h-8 bg-blue-600 text-white rounded-lg font-black">+</button>
+            </div>
+          </div>
+
+          <div class="card p-3 rounded-2xl flex items-center justify-between">
+            <span class="text-[9px] font-black uppercase opacity-50">Lanterns</span>
+            <div class="flex items-center gap-3">
+              <button onclick="adjustAddon('lanterns', -1)" class="minus-btn w-8 h-8 bg-slate-800 rounded-lg font-black text-white">-</button>
+              <span id="lanternCountDisplay" class="text-xs font-black text-amber-400">0</span>
+              <button onclick="adjustAddon('lanterns', 1)" class="w-8 h-8 bg-amber-500 text-white rounded-lg font-black">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-5 gap-1 pt-2">
+          <button onclick="setMode('small')" id="btn-small" class="card p-2 rounded-lg text-[8px] font-bold uppercase btn-active">Sm</button>
+          <button onclick="setMode('medium')" id="btn-medium" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Md</button>
+          <button onclick="setMode('large')" id="btn-large" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Lg</button>
+          <button onclick="setMode('door')" id="btn-door" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Dr</button>
+          <button onclick="setMode('pic')" id="btn-pic" class="card p-2 rounded-lg text-[8px] font-bold uppercase opacity-50">Pic</button>
+        </div>
+
+        <div class="flex gap-1 card p-1 rounded-xl">
+          <button id="lvl1" onclick="setLevel(1)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase btn-active">1st</button>
+          <button id="lvl1.5" onclick="setLevel(1.5)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase opacity-50">2nd</button>
+          <button id="lvl2" onclick="setLevel(2)" class="flex-1 py-2 rounded-lg text-[8px] font-bold uppercase opacity-50">3rd</button>
+        </div>
+
+        <div class="card p-4 rounded-2xl text-[10px] space-y-2">
+          <div id="liveBreakdown" class="space-y-1 opacity-70"></div>
+          <div class="flex justify-between font-black text-blue-500 border-t border-slate-700/30 pt-2 text-xs">
+            <span>EST. TIME:</span><span id="estTime">0 min</span>
+          </div>
+        </div>
+
+        <button onclick="appConfirm('Clear Job?', 'Delete all photos and counts?', resetJobLogic)" class="w-full card py-3 rounded-xl text-[9px] font-bold uppercase text-red-500/50">Clear Current Job</button>
+      </div>
+
+      <div id="view2" class="view space-y-4">
+        <div class="grid grid-cols-1 gap-3">
+          <div class="card p-5 rounded-3xl border-l-4 border-blue-500 shadow-md">
+            <p class="text-[9px] font-bold uppercase opacity-50 mb-1">In & Out Service</p>
+            <h2 class="text-2xl font-black text-blue-500" id="priceIn"></h2>
+          </div>
+          <div class="card p-5 rounded-3xl border-l-4 border-green-500 shadow-md">
+            <p class="text-[9px] font-bold uppercase opacity-50 mb-1">Outside Only</p>
+            <h2 class="text-2xl font-black text-green-500" id="priceOut"></h2>
+          </div>
+        </div>
+        <button onclick="shareSMS()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-lg">📱 Share Text Quote</button>
+      </div>
+
+      <div id="view3" class="view space-y-4">
+        <div class="card p-6 rounded-3xl space-y-4 shadow-sm">
+          <button onclick="toggleTheme()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase">Toggle Theme</button>
+          <button onclick="exportCSV()" class="w-full card py-3 rounded-xl text-[10px] font-black uppercase text-green-500">Export CSV</button>
+          <div class="space-y-3" id="priceSettings"></div>
+          <div>
+            <label class="text-[8px] uppercase font-bold opacity-50">Mins/Window</label>
+            <input type="number" id="laborTime" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1 outline-none" />
+          </div>
+          <button onclick="savePrices()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Save Settings</button>
+        </div>
+      </div>
     </div>
 
-    <script>
-        const APP_VERSION = "3.1";
-        const UPDATE_NOTES = ["Fixed 'nospott' browser alert URL popup", "Screen and Lantern counters now update correctly", "Professional light mode visibility fixes"];
+    <footer class="fixed bottom-0 w-full card border-t flex z-50">
+      <button onclick="showView(1)" id="nav1" class="nav-btn active">Estimate</button>
+      <button onclick="showView(2)" id="nav2" class="nav-btn">Quote</button>
+      <button onclick="showView(3)" id="nav3" class="nav-btn">Settings</button>
+    </footer>
+  </div>
 
-        let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
-        let addons = { screens: 0, lanterns: 0 };
-        let currentModalCallback = null;
+  <script>
+    const APP_VERSION = "3.1";
+    const UPDATE_NOTES = ["Fixed 'nospott' browser alert URL popup", "Screen and Lantern counters now update correctly", "Professional light mode visibility fixes"];
 
-        let conf = JSON.parse(localStorage.getItem('winAI_v14')) || { 
-            theme:'dark', tax:8.25, timePerWin: 3.5,
-            prices:{small:8, medium:12, large:18, door:15, pic:20, screens: 2, lanterns: 5} 
-        };
+    let curMode = 'small', curLvl = 1, markers = [], photos = [], activePhotoIdx = -1;
+    let addons = { screens: 0, lanterns: 0 };
+    let currentModalCallback = null;
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg; toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 2500);
+    let conf = JSON.parse(localStorage.getItem('winAI_v14')) || {
+      theme: 'dark', tax: 8.25, timePerWin: 3.5,
+      prices: { small: 8, medium: 12, large: 18, door: 15, pic: 20, screens: 2, lanterns: 5 }
+    };
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg; toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 2500);
+    }
+
+    // --- CUSTOM MODAL SYSTEM ---
+    function appConfirm(title, body, callback) {
+      const modal = document.getElementById('customModal');
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalBody').innerText = body;
+      document.getElementById('modalIcon').innerText = "⚠️";
+      document.getElementById('modalButtons').innerHTML = `
+        <button onclick="closeModal(false)" class="card py-4 rounded-xl font-black uppercase text-[10px] opacity-50">Cancel</button>
+        <button onclick="closeModal(true)" class="bg-red-600 text-white py-4 rounded-xl font-black uppercase text-[10px]">Clear</button>
+      `;
+      modal.style.display = 'flex';
+      currentModalCallback = callback;
+    }
+
+    function closeModal(result) {
+      document.getElementById('customModal').style.display = 'none';
+      if (result && currentModalCallback) currentModalCallback();
+      currentModalCallback = null;
+    }
+
+    function resetJobLogic() {
+      markers = []; photos = []; addons = { screens: 0, lanterns: 0 };
+      localStorage.removeItem('winAI_current_job');
+      location.reload();
+    }
+
+    function checkVersion() {
+      if (localStorage.getItem('app_v_seen') !== APP_VERSION) {
+        document.getElementById('updateNotes').innerHTML = UPDATE_NOTES.map(n => `<div>• ${n}</div>`).join('');
+        document.getElementById('updateModal').style.display = 'flex';
+      }
+    }
+    function closeUpdateModal() {
+      localStorage.setItem('app_v_seen', APP_VERSION);
+      document.getElementById('updateModal').style.display = 'none';
+    }
+
+    function init() {
+      document.getElementById('appInterface').classList.remove('hidden');
+      document.body.setAttribute('data-theme', conf.theme);
+      document.getElementById('laborTime').value = conf.timePerWin;
+
+      const savedJob = JSON.parse(localStorage.getItem('winAI_current_job'));
+      if (savedJob) {
+        markers = savedJob.markers || [];
+        addons = savedJob.addons || { screens: 0, lanterns: 0 };
+        photos = savedJob.photos || [];
+        activePhotoIdx = photos.length > 0 ? 0 : -1;
+        if (activePhotoIdx !== -1) updateGallery();
+        document.getElementById('screenCountDisplay').innerText = addons.screens || 0;
+        document.getElementById('lanternCountDisplay').innerText = addons.lanterns || 0;
+      }
+      renderPrices(); calc(); checkVersion();
+    }
+
+    function adjustAddon(type, val) {
+      if (!addons) addons = { screens: 0, lanterns: 0 };
+      addons[type] = Math.max(0, (addons[type] || 0) + val);
+      const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
+      document.getElementById(displayId).innerText = addons[type];
+      calc(); persist();
+    }
+
+    function persist() { localStorage.setItem('winAI_current_job', JSON.stringify({ markers, addons, photos })); }
+    function triggerCamera() { document.getElementById('camInput').click(); }
+    function triggerGallery() { document.getElementById('galleryInput').click(); }
+
+    function showView(n) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('view' + n).classList.add('view-active');
+      document.getElementById('nav' + n).classList.add('active');
+      document.getElementById('viewTitle').innerText = ["", "Estimator", "Final Quote", "Settings"][n];
+    }
+
+    function addImage(e) {
+      if (!e.target.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = (f) => {
+        photos.push(f.target.result);
+        activePhotoIdx = photos.length - 1;
+        updateGallery();
+        persist();
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+
+    function updateGallery() {
+      document.getElementById('galleryThumbs').innerHTML = photos.map((p, i) =>
+        `<img src="${p}" onclick="selectPhoto(${i})" class="w-12 h-12 object-cover rounded-lg border-2 ${i === activePhotoIdx ? 'border-blue-500' : 'border-transparent'}">`
+      ).join('');
+      const img = document.getElementById('activeImg');
+      img.src = photos[activePhotoIdx];
+      img.classList.remove('hidden');
+      document.getElementById('placeholder').style.display = 'none';
+      calc();
+    }
+
+    function selectPhoto(i) { activePhotoIdx = i; updateGallery(); }
+
+    /* ✅ FIXED: DR locks 2nd & 3rd AND doors ALWAYS place as 1st level */
+    function setMode(m) {
+      curMode = m;
+
+      // highlight active marker buttons
+      document.querySelectorAll('[id^=btn-]').forEach(b =>
+        b.classList.toggle('btn-active', b.id === 'btn-' + m)
+      );
+
+      const btn1st = document.getElementById('lvl1');
+      const btn2nd = document.getElementById('lvl1.5');
+      const btn3rd = document.getElementById('lvl2');
+      const isDoor = (m === 'door');
+
+      if (isDoor) {
+        // force 1st
+        curLvl = 1;
+
+        // set visual active to 1st
+        btn1st.classList.add('btn-active');
+        btn2nd.classList.remove('btn-active');
+        btn3rd.classList.remove('btn-active');
+
+        // disable 2nd/3rd
+        btn2nd.classList.add('disabled-floor');
+        btn3rd.classList.add('disabled-floor');
+      } else {
+        // re-enable 2nd/3rd
+        btn2nd.classList.remove('disabled-floor');
+        btn3rd.classList.remove('disabled-floor');
+      }
+    }
+
+    function setLevel(l) {
+      // hard block: if DR, only allow 1st
+      if (curMode === 'door' && l !== 1) return;
+
+      // extra safety: if the button is disabled, do nothing
+      const btn = document.getElementById('lvl' + l);
+      if (btn && btn.classList.contains('disabled-floor')) return;
+
+      curLvl = l;
+      [1, 1.5, 2].forEach(v => {
+        const el = document.getElementById('lvl' + v);
+        if (!el) return;
+        el.classList.toggle('btn-active', v === l);
+      });
+    }
+
+    function placeMarker(e) {
+      const r = e.target.getBoundingClientRect();
+
+      // hard force: doors always lvl 1
+      const lvlToUse = (curMode === 'door') ? 1 : curLvl;
+
+      markers.push({
+        x: ((e.clientX - r.left) / r.width) * 100,
+        y: ((e.clientY - r.top) / r.height) * 100,
+        type: curMode,
+        lvl: lvlToUse,
+        photoIdx: activePhotoIdx
+      });
+
+      calc(); persist();
+    }
+
+    function calc() {
+      document.querySelectorAll('.marker').forEach(m => m.remove());
+
+      let sub = 0, counts = { small: 0, medium: 0, large: 0, door: 0, pic: 0 };
+
+      markers.forEach(m => {
+        if (m.photoIdx === activePhotoIdx) {
+          const d = document.createElement('div');
+          d.className = `marker marker-${m.type}`;
+          d.style.left = m.x + '%';
+          d.style.top = m.y + '%';
+          document.getElementById('canvasContainer').appendChild(d);
         }
+        sub += (conf.prices[m.type] || 0) * m.lvl;
+        counts[m.type]++;
+      });
 
-        // --- CUSTOM MODAL SYSTEM ---
-        function appConfirm(title, body, callback) {
-            const modal = document.getElementById('customModal');
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalBody').innerText = body;
-            document.getElementById('modalIcon').innerText = "⚠️";
-            document.getElementById('modalButtons').innerHTML = `
-                <button onclick="closeModal(false)" class="card py-4 rounded-xl font-black uppercase text-[10px] opacity-50">Cancel</button>
-                <button onclick="closeModal(true)" class="bg-red-600 text-white py-4 rounded-xl font-black uppercase text-[10px]">Clear</button>
-            `;
-            modal.style.display = 'flex';
-            currentModalCallback = callback;
+      const addonSub = (addons.screens * (conf.prices.screens || 0)) + (addons.lanterns * (conf.prices.lanterns || 0));
+      const outTotal = (sub + addonSub) * (1 + conf.tax / 100);
+      const inTotal = outTotal * 1.8;
+
+      const totalTime = (markers.length * conf.timePerWin) + (addons.screens * 1.5) + (addons.lanterns * 3);
+      document.getElementById('estTime').innerText = `${Math.ceil(totalTime)} minutes`;
+
+      document.getElementById('priceIn').innerText = `$${inTotal.toFixed(2)}`;
+      document.getElementById('priceOut').innerText = `$${outTotal.toFixed(2)}`;
+
+      let html = "";
+      for (let t in counts) {
+        if (counts[t] > 0) {
+          html += `<div class="flex justify-between uppercase"><span>${t} (x${counts[t]})</span><span>$${(counts[t] * conf.prices[t]).toFixed(2)}</span></div>`;
         }
+      }
+      if (addons.screens > 0) html += `<div class="flex justify-between uppercase text-blue-500"><span>Screens (x${addons.screens})</span><span>$${(addons.screens * conf.prices.screens).toFixed(2)}</span></div>`;
+      if (addons.lanterns > 0) html += `<div class="flex justify-between uppercase text-amber-400"><span>Lanterns (x${addons.lanterns})</span><span>$${(addons.lanterns * conf.prices.lanterns).toFixed(2)}</span></div>`;
+      document.getElementById('liveBreakdown').innerHTML = html;
+    }
 
-        function closeModal(result) {
-            document.getElementById('customModal').style.display = 'none';
-            if(result && currentModalCallback) currentModalCallback();
-            currentModalCallback = null;
-        }
+    function shareSMS() {
+      const b = `Window Quote: Outside (${document.getElementById('priceOut').innerText}) | In/Out (${document.getElementById('priceIn').innerText}). Reply to book!`;
+      window.location.href = `sms:?body=${encodeURIComponent(b)}`;
+    }
 
-        function resetJobLogic() {
-            markers = []; photos = []; addons = {screens:0, lanterns:0};
-            localStorage.removeItem('winAI_current_job');
-            location.reload();
-        }
+    function toggleTheme() {
+      conf.theme = conf.theme === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', conf.theme);
+      localStorage.setItem('winAI_v14', JSON.stringify(conf));
+      showToast("Theme Updated");
+    }
 
-        function checkVersion() {
-            if (localStorage.getItem('app_v_seen') !== APP_VERSION) {
-                document.getElementById('updateNotes').innerHTML = UPDATE_NOTES.map(n => `<div>• ${n}</div>`).join('');
-                document.getElementById('updateModal').style.display = 'flex';
-            }
-        }
-        function closeUpdateModal() { localStorage.setItem('app_v_seen', APP_VERSION); document.getElementById('updateModal').style.display = 'none'; }
+    function renderPrices() {
+      let h = "";
+      for (let p in conf.prices) {
+        h += `<div><label class="text-[8px] uppercase font-bold opacity-50">${p} ($)</label><input type="number" id="p-${p}" value="${conf.prices[p]}" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1 outline-none"></div>`;
+      }
+      document.getElementById('priceSettings').innerHTML = h;
+    }
 
-        function init() {
-            document.getElementById('appInterface').classList.remove('hidden');
-            document.body.setAttribute('data-theme', conf.theme);
-            document.getElementById('laborTime').value = conf.timePerWin;
+    function savePrices() {
+      for (let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-' + p).value);
+      conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
+      localStorage.setItem('winAI_v14', JSON.stringify(conf));
+      showToast("Settings Saved");
+      calc();
+    }
 
-            const savedJob = JSON.parse(localStorage.getItem('winAI_current_job'));
-            if(savedJob) {
-                markers = savedJob.markers || [];
-                addons = savedJob.addons || {screens:0, lanterns:0};
-                photos = savedJob.photos || [];
-                activePhotoIdx = photos.length > 0 ? 0 : -1;
-                if(activePhotoIdx !== -1) updateGallery();
-                document.getElementById('screenCountDisplay').innerText = addons.screens || 0;
-                document.getElementById('lanternCountDisplay').innerText = addons.lanterns || 0;
-            }
-            renderPrices(); calc(); checkVersion();
-        }
-
-        function adjustAddon(type, val) {
-            if(!addons) addons = { screens: 0, lanterns: 0 };
-            addons[type] = Math.max(0, (addons[type] || 0) + val);
-            const displayId = type === 'screens' ? 'screenCountDisplay' : 'lanternCountDisplay';
-            document.getElementById(displayId).innerText = addons[type];
-            calc(); persist();
-        }
-
-        function persist() { localStorage.setItem('winAI_current_job', JSON.stringify({ markers, addons, photos })); }
-        function triggerCamera() { document.getElementById('camInput').click(); }
-        function triggerGallery() { document.getElementById('galleryInput').click(); }
-
-        function showView(n) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('view-active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('view'+n).classList.add('view-active');
-            document.getElementById('nav'+n).classList.add('active');
-            document.getElementById('viewTitle').innerText = ["", "Estimator", "Final Quote", "Settings"][n];
-        }
-
-        function addImage(e) {
-            if(!e.target.files[0]) return;
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                photos.push(f.target.result); activePhotoIdx = photos.length - 1; updateGallery(); persist();
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-
-        function updateGallery() {
-            document.getElementById('galleryThumbs').innerHTML = photos.map((p, i) => `<img src="${p}" onclick="selectPhoto(${i})" class="w-12 h-12 object-cover rounded-lg border-2 ${i===activePhotoIdx?'border-blue-500':'border-transparent'}">`).join('');
-            const img = document.getElementById('activeImg'); img.src = photos[activePhotoIdx]; img.classList.remove('hidden');
-            document.getElementById('placeholder').style.display = 'none';
-            calc();
-        }
-
-        function selectPhoto(i) { activePhotoIdx = i; updateGallery(); }
-
-        // ✅ FIXED: DR locks 2nd & 3rd + Doors ALWAYS use 1st level
-        function setMode(m) {
-            curMode = m;
-
-            // highlight active marker buttons
-            document.querySelectorAll('[id^=btn-]').forEach(b =>
-                b.classList.toggle('btn-active', b.id === 'btn-' + m)
-            );
-
-            const btn1st = document.getElementById('lvl1');
-            const btn2nd = document.getElementById('lvl1.5');
-            const btn3rd = document.getElementById('lvl2');
-
-            const isDoor = (m === 'door');
-
-            if (isDoor) {
-                // FORCE 1st
-                curLvl = 1;
-
-                // set visual active to 1st
-                btn1st.classList.add('btn-active');
-                btn2nd.classList.remove('btn-active');
-                btn3rd.classList.remove('btn-active');
-
-                // disable 2nd/3rd
-                btn2nd.classList.add('disabled-floor');
-                btn3rd.classList.add('disabled-floor');
-            } else {
-                // re-enable 2nd/3rd
-                btn2nd.classList.remove('disabled-floor');
-                btn3rd.classList.remove('disabled-floor');
-            }
-        }
-
-        function setLevel(l) {
-            // HARD BLOCK: if DR, only allow 1st
-            if (curMode === 'door' && l !== 1) return;
-
-            const btn = document.getElementById('lvl' + l);
-            if (btn && btn.classList.contains('disabled-floor')) return;
-
-            curLvl = l;
-            [1, 1.5, 2].forEach(v => {
-                const el = document.getElementById('lvl' + v);
-                if (!el) return;
-                el.classList.toggle('btn-active', v === l);
-            });
-        }
-
-        function placeMarker(e) {
-            const r = e.target.getBoundingClientRect();
-
-            // HARD FORCE: doors always lvl 1
-            const lvlToUse = (curMode === 'door') ? 1 : curLvl;
-
-            markers.push({
-                x: ((e.clientX - r.left) / r.width) * 100,
-                y: ((e.clientY - r.top) / r.height) * 100,
-                type: curMode,
-                lvl: lvlToUse,
-                photoIdx: activePhotoIdx
-            });
-
-            calc(); persist();
-        }
-
-        function calc() {
-            document.querySelectorAll('.marker').forEach(m => m.remove());
-            let sub = 0, counts = {small:0, medium:0, large:0, door:0, pic:0};
-            markers.forEach(m => {
-                if(m.photoIdx === activePhotoIdx) {
-                    const d = document.createElement('div'); d.className = `marker marker-${m.type}`;
-                    d.style.left = m.x+'%'; d.style.top = m.y+'%';
-                    document.getElementById('canvasContainer').appendChild(d);
-                }
-                sub += (conf.prices[m.type] || 0) * m.lvl; counts[m.type]++;
-            });
-            const addonSub = (addons.screens * (conf.prices.screens || 0)) + (addons.lanterns * (conf.prices.lanterns || 0));
-            const outTotal = (sub + addonSub) * (1 + conf.tax/100);
-            const inTotal = outTotal * 1.8;
-            const totalTime = (markers.length * conf.timePerWin) + (addons.screens * 1.5) + (addons.lanterns * 3);
-            document.getElementById('estTime').innerText = `${Math.ceil(totalTime)} minutes`;
-            document.getElementById('priceIn').innerText = `$${inTotal.toFixed(2)}`;
-            document.getElementById('priceOut').innerText = `$${outTotal.toFixed(2)}`;
-            let html = "";
-            for(let t in counts) if(counts[t]>0) html += `<div class="flex justify-between uppercase"><span>${t} (x${counts[t]})</span><span>$${(counts[t]*conf.prices[t]).toFixed(2)}</span></div>`;
-            if(addons.screens > 0) html += `<div class="flex justify-between uppercase text-blue-500"><span>Screens (x${addons.screens})</span><span>$${(addons.screens*conf.prices.screens).toFixed(2)}</span></div>`;
-            if(addons.lanterns > 0) html += `<div class="flex justify-between uppercase text-amber-400"><span>Lanterns (x${addons.lanterns})</span><span>$${(addons.lanterns*conf.prices.lanterns).toFixed(2)}</span></div>`;
-            document.getElementById('liveBreakdown').innerHTML = html;
-        }
-
-        function shareSMS() {
-            const b = `Window Quote: Outside ($${document.getElementById('priceOut').innerText}) | In/Out ($${document.getElementById('priceIn').innerText}). Reply to book!`;
-            window.location.href = `sms:?body=${encodeURIComponent(b)}`;
-        }
-
-        function toggleTheme() { conf.theme = conf.theme==='dark'?'light':'dark'; document.body.setAttribute('data-theme', conf.theme); localStorage.setItem('winAI_v14', JSON.stringify(conf)); showToast("Theme Updated"); }
-
-        function renderPrices() {
-            let h = "";
-            for(let p in conf.prices) h += `<div><label class="text-[8px] uppercase font-bold opacity-50">${p} ($)</label><input type="number" id="p-${p}" value="${conf.prices[p]}" class="w-full card p-3 rounded-lg text-blue-500 font-bold mt-1 outline-none"></div>`;
-            document.getElementById('priceSettings').innerHTML = h;
-        }
-
-        function savePrices() {
-            for(let p in conf.prices) conf.prices[p] = parseFloat(document.getElementById('p-'+p).value);
-            conf.timePerWin = parseFloat(document.getElementById('laborTime').value);
-            localStorage.setItem('winAI_v14', JSON.stringify(conf));
-            showToast("Settings Saved");
-            calc();
-        }
-
-        // NOTE: your original app references these; keep if you already have them elsewhere
-        function exportCSV() { alert("Export CSV not implemented in this file."); }
-        function logout() { alert("Logout not implemented in this file."); }
-
-        init();
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
-    </script>
+    init();
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+  </script>
 </body>
 </html>
